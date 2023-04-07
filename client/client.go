@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/celer-network/eth-services/store/models"
-	esTypes "github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/store/models"
+	esTypes "github.com/begmaroman/eth-services/types"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"

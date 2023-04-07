@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/store/models"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 )

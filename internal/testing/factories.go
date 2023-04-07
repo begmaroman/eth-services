@@ -9,9 +9,9 @@ import (
 	mathRand "math/rand"
 	"testing"
 
-	"github.com/celer-network/eth-services/client"
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/client"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
 	"github.com/google/uuid"
 	pbormanUUID "github.com/pborman/uuid"
 

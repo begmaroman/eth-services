@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/celer-network/eth-services/client"
-	"github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
-	"github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/client"
+	"github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
+	"github.com/begmaroman/eth-services/types"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/pkg/errors"

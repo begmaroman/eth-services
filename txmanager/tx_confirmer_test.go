@@ -8,14 +8,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/celer-network/eth-services/client"
-	"github.com/celer-network/eth-services/internal/mocks"
-	esTesting "github.com/celer-network/eth-services/internal/testing"
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/txmanager"
+	"github.com/begmaroman/eth-services/client"
+	"github.com/begmaroman/eth-services/internal/mocks"
+	esTesting "github.com/begmaroman/eth-services/internal/testing"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/txmanager"
 	"github.com/pkg/errors"
 
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/store/models"
 
 	gethAccounts "github.com/ethereum/go-ethereum/accounts"
 	gethCommon "github.com/ethereum/go-ethereum/common"

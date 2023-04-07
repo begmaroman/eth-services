@@ -1,4 +1,4 @@
-module github.com/celer-network/eth-services
+module github.com/begmaroman/eth-services
 
 go 1.15
 

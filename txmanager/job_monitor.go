@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"sync"
 
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
-	esTypes "github.com/celer-network/eth-services/types"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
+	esTypes "github.com/begmaroman/eth-services/types"
 	gethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/google/uuid"
 )

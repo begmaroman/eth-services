@@ -6,10 +6,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/celer-network/eth-services/client"
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
-	"github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/client"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
+	"github.com/begmaroman/eth-services/types"
 	"github.com/google/uuid"
 
 	gethAccounts "github.com/ethereum/go-ethereum/accounts"

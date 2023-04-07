@@ -3,12 +3,12 @@ package txmanager
 import (
 	"math/big"
 
-	"github.com/celer-network/eth-services/client"
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
-	"github.com/celer-network/eth-services/subscription"
-	"github.com/celer-network/eth-services/types"
-	esTypes "github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/client"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
+	"github.com/begmaroman/eth-services/subscription"
+	"github.com/begmaroman/eth-services/types"
+	esTypes "github.com/begmaroman/eth-services/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 )
@@ -51,8 +51,6 @@ type txManager struct {
 
 	jobMonitor *jobMonitor
 }
-
-var _ TxManager = (*txManager)(nil)
 
 func NewTxManager(
 	ethClient client.Client,

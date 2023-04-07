@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/store/models"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"

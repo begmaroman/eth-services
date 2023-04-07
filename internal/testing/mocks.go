@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/store/models"
 )
 
 // MockHeadTrackable allows you to mock HeadTrackable

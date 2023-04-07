@@ -1,7 +1,7 @@
 package tendermint
 
 import (
-	"github.com/celer-network/eth-services/store/models"
+	"github.com/begmaroman/eth-services/store/models"
 	"github.com/google/uuid"
 )
 

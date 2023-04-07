@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/celer-network/eth-services/client"
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
-	"github.com/celer-network/eth-services/subscription"
-	"github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/client"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
+	"github.com/begmaroman/eth-services/subscription"
+	"github.com/begmaroman/eth-services/types"
 
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

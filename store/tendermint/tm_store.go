@@ -1,7 +1,7 @@
 package tendermint
 
 import (
-	"github.com/celer-network/eth-services/store"
+	"github.com/begmaroman/eth-services/store"
 	"github.com/pkg/errors"
 	tmDB "github.com/tendermint/tm-db"
 	"github.com/vmihailenco/msgpack/v5"
@@ -69,14 +69,6 @@ func set(db tmDB.DB, key []byte, entity interface{}) error {
 		return errors.Wrap(err, "could not store data")
 	}
 	return nil
-}
-
-func concatKeys(parts ...[]byte) []byte {
-	var res []byte
-	for _, p := range parts {
-		res = append(res, p...)
-	}
-	return res
 }
 
 func toCreateIterError(err error) error {

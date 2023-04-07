@@ -3,7 +3,7 @@ package logger
 import (
 	"fmt"
 
-	"github.com/celer-network/eth-services/types"
+	"github.com/begmaroman/eth-services/types"
 	"go.uber.org/zap"
 )
 

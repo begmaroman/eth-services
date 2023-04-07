@@ -13,7 +13,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "github.com/celer-network/eth-services/store/models"
+	models "github.com/begmaroman/eth-services/store/models"
 
 	types "github.com/ethereum/go-ethereum/core/types"
 )

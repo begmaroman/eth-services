@@ -1,8 +1,8 @@
 package tendermint
 
 import (
-	esStore "github.com/celer-network/eth-services/store"
-	"github.com/celer-network/eth-services/store/models"
+	esStore "github.com/begmaroman/eth-services/store"
+	"github.com/begmaroman/eth-services/store/models"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/pkg/errors"
