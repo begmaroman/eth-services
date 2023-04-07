@@ -35,7 +35,6 @@ type Client interface {
 	Call(result interface{}, method string, args ...interface{}) error
 	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
 
-	HeaderByNumber(ctx context.Context, n *big.Int) (*models.Head, error)
 	SubscribeNewHead(ctx context.Context, ch chan<- *models.Head) (ethereum.Subscription, error)
 }
 
@@ -55,6 +54,8 @@ type GethClient interface {
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
+
+	HeaderByNumber(ctx context.Context, n *big.Int) (*types.Header, error)
 }
 
 // RPCClient is an interface that represents go-ethereum's own rpc.Client.
@@ -220,23 +221,11 @@ func (client *Impl) BlockByNumber(ctx context.Context, number *big.Int) (*types.
 	return client.GethClient.BlockByNumber(ctx, number)
 }
 
-func (client *Impl) HeaderByNumber(ctx context.Context, number *big.Int) (*models.Head, error) {
+func (client *Impl) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	client.logger.Debugw("eth.Client#HeaderByNumber(...)",
 		"number", number,
 	)
-	var head *models.Head
-	err := client.RPCClient.CallContext(ctx, &head, "eth_getBlockByNumber", toBlockNumArg(number), false)
-	if err == nil && head == nil {
-		err = ethereum.NotFound
-	}
-	return head, err
-}
-
-func toBlockNumArg(number *big.Int) string {
-	if number == nil {
-		return "latest"
-	}
-	return hexutil.EncodeBig(number)
+	return client.GethClient.HeaderByNumber(ctx, number)
 }
 
 func (client *Impl) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {

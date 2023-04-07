@@ -121,6 +121,16 @@ type Head struct {
 	Parent *Head // not persisted, filled in Chain()
 }
 
+// FromHeader returns a Head instance from the given header.
+func FromHeader(head *types.Header) *Head {
+	return &Head{
+		Number:     head.Number.Int64(),
+		Hash:       head.Hash(),
+		ParentHash: head.ParentHash,
+		Timestamp:  time.Unix(int64(head.Time), 0),
+	}
+}
+
 // NewHead returns a Head instance.
 func NewHead(number *big.Int, blockHash common.Hash, parentHash common.Hash, timestamp uint64) *Head {
 	return &Head{
@@ -229,11 +239,11 @@ func (h *Head) MarshalJSON() ([]byte, error) {
 	}
 
 	var jsonHead head
-	if h.Hash != emptyHash {
+	if h.Hash != (emptyHash) {
 		jsonHead.Hash = &h.Hash
 	}
 	jsonHead.Number = (*hexutil.Big)(big.NewInt(int64(h.Number)))
-	if h.ParentHash != emptyHash {
+	if h.ParentHash != (emptyHash) {
 		jsonHead.ParentHash = &h.ParentHash
 	}
 	if h.Timestamp != (time.Time{}) {

@@ -458,16 +458,22 @@ func (ht *HeadTracker) backfill(ctx context.Context, head *models.Head, baseHeig
 
 func (ht *HeadTracker) fetchAndSaveHead(ctx context.Context, n uint64) (*models.Head, error) {
 	ht.logger.Debugw("HeadTracker: fetching head", "blockHeight", n)
+
 	head, err := ht.ethClient.HeaderByNumber(ctx, new(big.Int).SetUint64(n))
 	if err != nil {
 		return nil, err
 	} else if head == nil {
 		return nil, errors.New("got nil head")
 	}
-	if err := ht.store.InsertHead(head); err != nil {
+
+	model := models.FromHeader(head)
+
+	// Store header
+	if err = ht.store.InsertHead(model); err != nil {
 		return nil, err
 	}
-	return head, nil
+
+	return model, nil
 }
 
 func (ht *HeadTracker) onNewLongestChain(ctx context.Context, headWithChain *models.Head) {
