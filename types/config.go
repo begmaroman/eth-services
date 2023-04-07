@@ -21,7 +21,6 @@ type Config struct {
 
 	DBPollInterval time.Duration
 
-	KeysDir         string
 	DefaultGasPrice *big.Int
 	MaxGasPrice     *big.Int
 	GasBumpPercent  uint64

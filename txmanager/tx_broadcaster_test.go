@@ -28,15 +28,15 @@ import (
 )
 
 const (
-	keyDir = "../internal/fixtures/keys"
+	keyDir = "/tmp/eth-service-test/keys"
 )
 
 func TestTxBroadcaster_ProcessUnstartedTxs_Success(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
-	require.NoError(t, os.RemoveAll(config.KeysDir))
+	require.NoError(t, os.RemoveAll(keyDir))
 
-	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 	tb := txmanager.NewTxBroadcaster(ethClient, store, keyStore, config)
@@ -296,9 +296,9 @@ func TestTxBroadcaster_AssignsNonceOnFirstRun(t *testing.T) {
 	var err error
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
-	require.NoError(t, os.RemoveAll(config.KeysDir))
+	require.NoError(t, os.RemoveAll(keyDir))
 
-	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore)
 
 	ethClient := new(mocks.Client)
@@ -403,8 +403,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 	t.Run("previous run assigned nonce but never broadcast", func(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -438,8 +438,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 	t.Run("previous run assigned nonce and broadcast but it fatally errored before we could save", func(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -470,8 +470,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 	t.Run("previous run assigned nonce and broadcast and is now in mempool", func(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -501,8 +501,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 	t.Run("previous run assigned nonce and broadcast and now the transaction has been confirmed", func(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -533,8 +533,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		failedToReachNodeError := context.DeadlineExceeded
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -567,8 +567,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 	t.Run("previous run assigned nonce and broadcast transaction then crashed and rebooted with a different configured gas price", func(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
-		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+		require.NoError(t, os.RemoveAll(keyDir))
+		keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -630,8 +630,8 @@ func TestTxBroadcaster_ProcessUnstartedTxs_Errors(t *testing.T) {
 
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
-	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
+	require.NoError(t, os.RemoveAll(keyDir))
+	keyStore := eskeystore.NewInsecureKeyStore(keyDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 

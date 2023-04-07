@@ -38,7 +38,6 @@ func NewConfig(t testing.TB) *types.Config {
 		HeadTrackerHistoryDepth:  100,
 		HeadTrackerMaxBufferSize: 3,
 		FinalityDepth:            50,
-		KeysDir:                  "/tmp/eth-service-test/keys",
 		DefaultGasPrice:          big.NewInt(20000000000),
 		MaxGasPrice:              big.NewInt(1500000000000),
 		GasBumpWei:               big.NewInt(5000000000),
