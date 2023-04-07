@@ -67,12 +67,6 @@ type RPCClient interface {
 	Close()
 }
 
-// Subscription is an interface for mock generation. It is identical to `ethereum.Subscription`.
-type Subscription interface {
-	Err() <-chan error
-	Unsubscribe()
-}
-
 // Impl implements the ethereum Client interface using a CallerSubscriber instance.
 type Impl struct {
 	GethClient
