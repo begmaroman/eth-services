@@ -14,6 +14,7 @@ import (
 	"github.com/begmaroman/eth-services/types"
 
 	ethereum "github.com/ethereum/go-ethereum"
+	etypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 )
 
@@ -31,13 +32,13 @@ type HeadTrackable interface {
 // head tracker and drops the oldest head if necessary in order to keep to a fixed
 // queue size (defined by the buffer size of out channel)
 type headRingBuffer struct {
-	in     <-chan *models.Head
+	in     <-chan *etypes.Header
 	out    chan models.Head
 	start  sync.Once
 	logger types.Logger
 }
 
-func newHeadRingBuffer(in <-chan *models.Head, size int, logger types.Logger) (r *headRingBuffer, out chan models.Head) {
+func newHeadRingBuffer(in <-chan *etypes.Header, size int, logger types.Logger) (r *headRingBuffer, out chan models.Head) {
 	out = make(chan models.Head, size)
 	return &headRingBuffer{
 		in:     in,
@@ -61,12 +62,16 @@ func (r *headRingBuffer) run() {
 			r.logger.Error("HeadTracker: got nil block header")
 			continue
 		}
+
 		hInQueue := len(r.out)
 		if hInQueue > 0 {
 			r.logger.Infof("HeadTracker: Head %v is lagging behind, there are %v more heads in the queue.", h.Number, hInQueue)
 		}
+
+		model := models.FromHeader(h)
+
 		select {
-		case r.out <- *h:
+		case r.out <- *model:
 		default:
 			// Need to select/default here because it's conceivable (although
 			// improbable) that between the previous select and now, all heads were drained
@@ -78,12 +83,13 @@ func (r *headRingBuffer) run() {
 			select {
 			case dropped := <-r.out:
 				r.logger.Errorf("HeadTracker: dropping head %v with hash 0x%x because queue is full.", dropped.Number, h.Hash)
-				r.out <- *h
+				r.out <- *model
 			default:
-				r.out <- *h
+				r.out <- *model
 			}
 		}
 	}
+
 	close(r.out)
 }
 
@@ -91,7 +97,7 @@ func (r *headRingBuffer) run() {
 // Reconstitutes the last block number from the data store on reboot.
 type HeadTracker struct {
 	callbacks             []HeadTrackable
-	inHeaders             chan *models.Head
+	inHeaders             chan *etypes.Header
 	outHeaders            chan models.Head
 	headSubscription      ethereum.Subscription
 	highestSeenHead       *models.Head
@@ -274,12 +280,12 @@ func (ht *HeadTracker) subscribe() bool {
 		}
 
 		ht.logger.Info("Connecting to ethereum node ", ht.config.RPCURL, " in ", ht.sleeper.Duration())
+
 		select {
 		case <-ht.done:
 			return false
 		case <-time.After(ht.sleeper.After()):
-			err := ht.subscribeToHead()
-			if err != nil {
+			if err = ht.subscribeToHead(); err != nil {
 				ht.logger.Warnw(fmt.Sprintf("Failed to connect to ethereum node %v", ht.config.RPCURL), "err", err)
 			} else {
 				ht.logger.Info("Connected to ethereum node ", ht.config.RPCURL)
@@ -508,7 +514,7 @@ func (ht *HeadTracker) subscribeToHead() error {
 	ht.headMutex.Lock()
 	defer ht.headMutex.Unlock()
 
-	ht.inHeaders = make(chan *models.Head)
+	ht.inHeaders = make(chan *etypes.Header)
 	var rb *headRingBuffer
 	rb, ht.outHeaders = newHeadRingBuffer(ht.inHeaders, int(ht.config.HeadTrackerMaxBufferSize), ht.logger)
 	// It will autostop when we close inHeaders channel

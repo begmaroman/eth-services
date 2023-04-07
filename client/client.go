@@ -15,14 +15,12 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/pkg/errors"
 
-	"github.com/begmaroman/eth-services/store/models"
 	esTypes "github.com/begmaroman/eth-services/types"
 )
 
 //go:generate mockery --name Client --output ../internal/mocks/ --case=underscore
 //go:generate mockery --name GethClient --output ../internal/mocks/ --case=underscore
 //go:generate mockery --name RPCClient --output ../internal/mocks/ --case=underscore
-//go:generate mockery --name Subscription --output ../internal/mocks/ --case=underscore
 
 // Client is the interface used to interact with an ethereum node.
 type Client interface {
@@ -34,8 +32,6 @@ type Client interface {
 	SendRawTx(bytes []byte) (common.Hash, error)
 	Call(result interface{}, method string, args ...interface{}) error
 	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
-
-	SubscribeNewHead(ctx context.Context, ch chan<- *models.Head) (ethereum.Subscription, error)
 }
 
 // GethClient is an interface that represents go-ethereum's own ethclient
@@ -45,6 +41,7 @@ type GethClient interface {
 	ethereum.LogFilterer
 	ethereum.GasPricer
 	ethereum.GasEstimator
+	ethereum.ChainReader
 
 	ChainID(ctx context.Context) (*big.Int, error)
 	PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error)
@@ -54,8 +51,6 @@ type GethClient interface {
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
-
-	HeaderByNumber(ctx context.Context, n *big.Int) (*types.Header, error)
 }
 
 // RPCClient is an interface that represents go-ethereum's own rpc.Client.
@@ -250,9 +245,9 @@ func (client *Impl) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQu
 	return client.GethClient.SubscribeFilterLogs(ctx, q, ch)
 }
 
-func (client *Impl) SubscribeNewHead(ctx context.Context, ch chan<- *models.Head) (ethereum.Subscription, error) {
+func (client *Impl) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
 	client.logger.Debugw("eth.Client#SubscribeNewHead(...)")
-	return client.RPCClient.EthSubscribe(ctx, ch, "newHeads")
+	return client.GethClient.SubscribeNewHead(ctx, ch)
 }
 
 // TODO: remove this wrapper type once EthMock is no longer in use in upstream.

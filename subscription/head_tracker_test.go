@@ -169,11 +169,11 @@ func TestHeadTracker_CallsHeadTrackableCallbacks(t *testing.T) {
 	sub := new(mocks.Subscription)
 	ethClient := new(mocks.Client)
 
-	chchHeaders := make(chan chan<- *models.Head, 1)
+	chchHeaders := make(chan chan<- *gethTypes.Header, 1)
 	ethClient.On("ChainID", mock.Anything).Return(config.ChainID, nil)
 	ethClient.On("SubscribeNewHead", mock.Anything, mock.Anything).
 		Run(func(args mock.Arguments) {
-			chchHeaders <- args.Get(1).(chan<- *models.Head)
+			chchHeaders <- args.Get(1).(chan<- *gethTypes.Header)
 		}).
 		Return(sub, nil)
 	ethClient.On("HeaderByNumber", mock.Anything, mock.Anything).Return(esTesting.Head(1), nil)
@@ -190,7 +190,7 @@ func TestHeadTracker_CallsHeadTrackableCallbacks(t *testing.T) {
 	assert.Equal(t, int32(0), checker.OnNewLongestChainCount())
 
 	headers := <-chchHeaders
-	headers <- &models.Head{Number: 1}
+	headers <- &gethTypes.Header{Number: big.NewInt(1)}
 	g.Eventually(func() int32 { return checker.OnNewLongestChainCount() }).Should(gomega.Equal(int32(1)))
 	assert.Equal(t, int32(1), checker.ConnectedCount())
 	assert.Equal(t, int32(0), checker.DisconnectedCount())
@@ -248,10 +248,10 @@ func TestHeadTracker_StartConnectsFromLastSavedHeader(t *testing.T) {
 	sub := new(mocks.Subscription)
 	ethClient := new(mocks.Client)
 
-	chchHeaders := make(chan chan<- *models.Head, 1)
+	chchHeaders := make(chan chan<- *gethTypes.Header, 1)
 	ethClient.On("ChainID", mock.Anything).Return(config.ChainID, nil)
 	ethClient.On("SubscribeNewHead", mock.Anything, mock.Anything).
-		Run(func(args mock.Arguments) { chchHeaders <- args.Get(1).(chan<- *models.Head) }).
+		Run(func(args mock.Arguments) { chchHeaders <- args.Get(1).(chan<- *gethTypes.Header) }).
 		Return(sub, nil)
 
 	latestHeadByNumber := make(map[int64]*models.Head)
@@ -282,7 +282,7 @@ func TestHeadTracker_StartConnectsFromLastSavedHeader(t *testing.T) {
 
 	assert.Nil(t, ht.Start())
 	headers := <-chchHeaders
-	headers <- &models.Head{Number: currentBN.Int64()}
+	headers <- &gethTypes.Header{Number: currentBN}
 	g.Eventually(func() int32 { return checker.ConnectedCount() }).Should(gomega.Equal(int32(1)))
 
 	connectedBN := connectedValue.Load().(*big.Int)
@@ -313,10 +313,10 @@ func TestHeadTracker_SwitchesToLongestChain(t *testing.T) {
 	checker := new(mocks.HeadTrackable)
 	ht := subscription.NewHeadTracker(ethClient, store, config, []subscription.HeadTrackable{checker}, esTesting.NeverSleeper{})
 
-	chchHeaders := make(chan chan<- *models.Head, 1)
+	chchHeaders := make(chan chan<- *gethTypes.Header, 1)
 	ethClient.On("ChainID", mock.Anything).Return(config.ChainID, nil)
 	ethClient.On("SubscribeNewHead", mock.Anything, mock.Anything).
-		Run(func(args mock.Arguments) { chchHeaders <- args.Get(1).(chan<- *models.Head) }).
+		Run(func(args mock.Arguments) { chchHeaders <- args.Get(1).(chan<- *gethTypes.Header) }).
 		Return(sub, nil)
 
 	sub.On("Unsubscribe").Return()
@@ -411,7 +411,12 @@ func TestHeadTracker_SwitchesToLongestChain(t *testing.T) {
 		latestHeadByNumberMu.Lock()
 		latestHeadByNumber[h.Number] = h
 		latestHeadByNumberMu.Unlock()
-		headers <- h
+		headers <- &gethTypes.Header{
+			Number:     big.NewInt(h.Number),
+			ParentHash: h.ParentHash,
+			Root:       h.Hash,
+			Time:       uint64(h.Timestamp.Unix()),
+		}
 	}
 
 	gomega.NewWithT(t).Eventually(lastHead).Should(gomega.BeClosed())
@@ -737,11 +742,11 @@ func TestHeadTracker_RingBuffer(t *testing.T) {
 		sub := new(mocks.Subscription)
 		ethClient := new(mocks.Client)
 
-		chchHeaders := make(chan chan<- *models.Head, 1)
+		chchHeaders := make(chan chan<- *gethTypes.Header, 1)
 		ethClient.On("ChainID", mock.Anything).Return(config.ChainID, nil)
 		ethClient.On("SubscribeNewHead", mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
-				chchHeaders <- args.Get(1).(chan<- *models.Head)
+				chchHeaders <- args.Get(1).(chan<- *gethTypes.Header)
 			}).
 			Return(sub, nil)
 		// We don't care about this since we're not testing backfilling, just return anything
@@ -762,7 +767,10 @@ func TestHeadTracker_RingBuffer(t *testing.T) {
 
 		// Fill up the buffer first
 		for i := 0; i < bufferSize; i++ {
-			headers <- &models.Head{Number: int64(i), Hash: esTesting.NewHash()}
+			headers <- &gethTypes.Header{
+				Number: big.NewInt(int64(i)),
+				Root:   esTesting.NewHash(),
+			}
 		}
 		// Now we have heads 0, 1, 2 in buffer. Wait for callback to block on head 0
 		h := <-cb.called
@@ -770,9 +778,15 @@ func TestHeadTracker_RingBuffer(t *testing.T) {
 
 		// Head 0 has been pulled off. Callback is blocking on head 0.
 		// Buffer: 1, 2
-		headers <- &models.Head{Number: 3, Hash: esTesting.NewHash()}
+		headers <- &gethTypes.Header{
+			Number: big.NewInt(3),
+			Root:   esTesting.NewHash(),
+		}
 		// Buffer: 1, 2, 3
-		headers <- &models.Head{Number: 4, Hash: esTesting.NewHash()}
+		headers <- &gethTypes.Header{
+			Number: big.NewInt(4),
+			Root:   esTesting.NewHash(),
+		}
 		// Buffer: 2, 3, 4 (dropped head 1)
 
 		// Resume the headtracker callback

@@ -13,8 +13,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "github.com/begmaroman/eth-services/store/models"
-
 	types "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -42,6 +40,32 @@ func (_m *Client) BalanceAt(ctx context.Context, account common.Address, blockNu
 
 	if rf, ok := ret.Get(1).(func(context.Context, common.Address, *big.Int) error); ok {
 		r1 = rf(ctx, account, blockNumber)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BlockByHash provides a mock function with given fields: ctx, hash
+func (_m *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
+	ret := _m.Called(ctx, hash)
+
+	var r0 *types.Block
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) (*types.Block, error)); ok {
+		return rf(ctx, hash)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) *types.Block); ok {
+		r0 = rf(ctx, hash)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Block)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, common.Hash) error); ok {
+		r1 = rf(ctx, hash)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -256,17 +280,43 @@ func (_m *Client) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]typ
 	return r0, r1
 }
 
-// HeaderByNumber provides a mock function with given fields: ctx, n
-func (_m *Client) HeaderByNumber(ctx context.Context, n *big.Int) (*types.Header, error) {
-	ret := _m.Called(ctx, n)
+// HeaderByHash provides a mock function with given fields: ctx, hash
+func (_m *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
+	ret := _m.Called(ctx, hash)
+
+	var r0 *types.Header
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) (*types.Header, error)); ok {
+		return rf(ctx, hash)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) *types.Header); ok {
+		r0 = rf(ctx, hash)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Header)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, common.Hash) error); ok {
+		r1 = rf(ctx, hash)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// HeaderByNumber provides a mock function with given fields: ctx, number
+func (_m *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+	ret := _m.Called(ctx, number)
 
 	var r0 *types.Header
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *big.Int) (*types.Header, error)); ok {
-		return rf(ctx, n)
+		return rf(ctx, number)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, *big.Int) *types.Header); ok {
-		r0 = rf(ctx, n)
+		r0 = rf(ctx, number)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*types.Header)
@@ -274,7 +324,7 @@ func (_m *Client) HeaderByNumber(ctx context.Context, n *big.Int) (*types.Header
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *big.Int) error); ok {
-		r1 = rf(ctx, n)
+		r1 = rf(ctx, number)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -399,15 +449,15 @@ func (_m *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuer
 }
 
 // SubscribeNewHead provides a mock function with given fields: ctx, ch
-func (_m *Client) SubscribeNewHead(ctx context.Context, ch chan<- *models.Head) (ethereum.Subscription, error) {
+func (_m *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
 	ret := _m.Called(ctx, ch)
 
 	var r0 ethereum.Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, chan<- *models.Head) (ethereum.Subscription, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, chan<- *types.Header) (ethereum.Subscription, error)); ok {
 		return rf(ctx, ch)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, chan<- *models.Head) ethereum.Subscription); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, chan<- *types.Header) ethereum.Subscription); ok {
 		r0 = rf(ctx, ch)
 	} else {
 		if ret.Get(0) != nil {
@@ -415,7 +465,7 @@ func (_m *Client) SubscribeNewHead(ctx context.Context, ch chan<- *models.Head) 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, chan<- *models.Head) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, chan<- *types.Header) error); ok {
 		r1 = rf(ctx, ch)
 	} else {
 		r1 = ret.Error(1)
@@ -443,6 +493,56 @@ func (_m *Client) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TransactionCount provides a mock function with given fields: ctx, blockHash
+func (_m *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
+	ret := _m.Called(ctx, blockHash)
+
+	var r0 uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) (uint, error)); ok {
+		return rf(ctx, blockHash)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash) uint); ok {
+		r0 = rf(ctx, blockHash)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, common.Hash) error); ok {
+		r1 = rf(ctx, blockHash)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TransactionInBlock provides a mock function with given fields: ctx, blockHash, index
+func (_m *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error) {
+	ret := _m.Called(ctx, blockHash, index)
+
+	var r0 *types.Transaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash, uint) (*types.Transaction, error)); ok {
+		return rf(ctx, blockHash, index)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, common.Hash, uint) *types.Transaction); ok {
+		r0 = rf(ctx, blockHash, index)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*types.Transaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, common.Hash, uint) error); ok {
+		r1 = rf(ctx, blockHash, index)
 	} else {
 		r1 = ret.Error(1)
 	}
