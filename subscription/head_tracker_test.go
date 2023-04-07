@@ -543,7 +543,7 @@ func TestHeadTracker_GetChainWithBackfill(t *testing.T) {
 		ethClient := new(mocks.Client)
 
 		ethClient.On("HeaderByNumber", mock.Anything, big.NewInt(10)).
-			Return(head10, nil)
+			Return(gethHead10, nil)
 
 		ht := subscription.NewHeadTracker(ethClient, store, config, []subscription.HeadTrackable{}, esTesting.NeverSleeper{})
 
@@ -750,7 +750,8 @@ func TestHeadTracker_RingBuffer(t *testing.T) {
 			}).
 			Return(sub, nil)
 		// We don't care about this since we're not testing backfilling, just return anything
-		ethClient.On("HeaderByNumber", mock.Anything, mock.Anything).Return(esTesting.Head(42), nil)
+		ethClient.On("HeaderByNumber", mock.Anything, mock.Anything).
+			Return(&gethTypes.Header{Number: big.NewInt(42)}, nil)
 
 		sub.On("Unsubscribe").Return()
 		sub.On("Err").Return(nil)

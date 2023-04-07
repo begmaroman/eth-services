@@ -42,15 +42,18 @@ type GethClient interface {
 	ethereum.GasPricer
 	ethereum.GasEstimator
 	ethereum.ChainReader
+	ethereum.PendingStateReader
 
 	ChainID(ctx context.Context) (*big.Int, error)
-	PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error)
-	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
 	BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error)
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
+
+	// SuggestGasTipCap retrieves the currently suggested 1559 priority fee to allow
+	// a timely execution of a transaction.
+	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
 }
 
 // RPCClient is an interface that represents go-ethereum's own rpc.Client.
@@ -248,6 +251,13 @@ func (client *Impl) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQu
 func (client *Impl) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
 	client.logger.Debugw("eth.Client#SubscribeNewHead(...)")
 	return client.GethClient.SubscribeNewHead(ctx, ch)
+}
+
+// SuggestGasTipCap retrieves the currently suggested 1559 priority fee to allow
+// a timely execution of a transaction.
+func (client *Impl) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
+	client.logger.Debugw("eth.Client#SuggestGasTipCap(...)")
+	return client.GethClient.SuggestGasTipCap(ctx)
 }
 
 // TODO: remove this wrapper type once EthMock is no longer in use in upstream.

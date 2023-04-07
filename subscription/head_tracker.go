@@ -122,7 +122,8 @@ func NewHeadTracker(
 	store store.Store,
 	config *types.Config,
 	callbacks []HeadTrackable,
-	sleepers ...Sleeper) *HeadTracker {
+	sleepers ...Sleeper,
+) *HeadTracker {
 	var sleeper Sleeper
 	if len(sleepers) > 0 {
 		sleeper = sleepers[0]
