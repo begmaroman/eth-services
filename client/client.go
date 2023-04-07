@@ -42,17 +42,17 @@ type Client interface {
 // GethClient is an interface that represents go-ethereum's own ethclient
 // https://github.com/ethereum/go-ethereum/blob/master/ethclient/ethclient.go
 type GethClient interface {
+	ethereum.TransactionSender
+	ethereum.LogFilterer
+	ethereum.GasPricer
+	ethereum.GasEstimator
+
 	ChainID(ctx context.Context) (*big.Int, error)
-	SendTransaction(ctx context.Context, tx *types.Transaction) error
 	PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error)
 	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
 	BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error)
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
-	FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]types.Log, error)
-	SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error)
-	EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64, error)
-	SuggestGasPrice(ctx context.Context) (*big.Int, error)
 	CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
 }
