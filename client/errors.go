@@ -7,8 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// fatal means this transaction can never be accepted even with a different nonce or higher gas price
 type SendError struct {
+	// fatal means this transaction can never be accepted even with a different nonce or higher gas price
 	fatal bool
 	err   error
 }

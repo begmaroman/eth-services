@@ -100,7 +100,12 @@ func NewImpl(config *esTypes.Config) (*Impl, error) {
 			return nil, errors.Errorf("secondary Ethereum RPC URL scheme must be http(s): %s", url.String())
 		}
 	}
-	return &Impl{url: rpcURL, secondaryURLs: secondaryRPCURLs, logger: config.Logger}, nil
+
+	return &Impl{
+		url:           rpcURL,
+		secondaryURLs: secondaryRPCURLs,
+		logger:        config.Logger,
+	}, nil
 }
 
 func (client *Impl) Dial(ctx context.Context) error {

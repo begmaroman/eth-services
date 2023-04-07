@@ -3,15 +3,16 @@ package logger
 import (
 	"fmt"
 
-	"github.com/begmaroman/eth-services/types"
 	"go.uber.org/zap"
+
+	"github.com/begmaroman/eth-services/types"
 )
+
+var _ types.Logger = (*ZapLogger)(nil)
 
 type ZapLogger struct {
 	*zap.SugaredLogger
 }
-
-var _ types.Logger = (*ZapLogger)(nil)
 
 // NewZapLogger creates a wrapped zap logger
 func NewZapLogger(logger *zap.SugaredLogger) *ZapLogger {

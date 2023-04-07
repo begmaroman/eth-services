@@ -23,12 +23,6 @@ import (
 	"go.uber.org/multierr"
 )
 
-var (
-	// ErrCouldNotGetReceipt is the error string we save if we reach our finality depth for a confirmed transaction without ever getting a receipt
-	// This most likely happened because an external wallet used the account for this nonce
-	ErrCouldNotGetReceipt = "could not get receipt"
-)
-
 type TxConfirmer interface {
 	subscription.HeadTrackable
 
@@ -59,7 +53,8 @@ func NewTxConfirmer(
 	ethClient client.Client,
 	store esStore.Store,
 	keyStore client.KeyStoreInterface,
-	config *types.Config) TxConfirmer {
+	config *types.Config,
+) TxConfirmer {
 	return &txConfirmer{
 		ethClient: ethClient,
 		store:     store,
@@ -68,8 +63,6 @@ func NewTxConfirmer(
 		logger:    config.Logger,
 	}
 }
-
-var _ TxConfirmer = (*txConfirmer)(nil)
 
 // Do nothing on connect, simply wait for the next head
 func (tc *txConfirmer) Connect(*models.Head) error {

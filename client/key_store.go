@@ -81,10 +81,12 @@ func (ks *KeyStore) NewAccount() (accounts.Account, error) {
 	if ks.password == "" {
 		return accounts.Account{}, ErrKeyStoreLocked
 	}
+
 	acct, err := ks.KeyStore.NewAccount(ks.password)
 	if err != nil {
 		return accounts.Account{}, err
 	}
+
 	err = ks.KeyStore.Unlock(acct, ks.password)
 	return acct, err
 }
@@ -105,6 +107,7 @@ func (ks *KeyStore) HasAccountWithAddress(address common.Address) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -115,6 +118,7 @@ func (ks *KeyStore) GetAccountByAddress(address common.Address) (accounts.Accoun
 			return account, nil
 		}
 	}
+
 	return accounts.Account{}, errors.New("no account found with that address")
 }
 
@@ -122,10 +126,12 @@ func (ks *KeyStore) Import(keyJSON []byte, oldPassword string) (accounts.Account
 	if ks.password == "" {
 		return accounts.Account{}, ErrKeyStoreLocked
 	}
+
 	acct, err := ks.KeyStore.Import(keyJSON, oldPassword, ks.password)
 	if err != nil {
 		return accounts.Account{}, errors.Wrap(err, "could not import ETH key")
 	}
+
 	err = ks.KeyStore.Unlock(acct, ks.password)
 	return acct, err
 }
@@ -134,10 +140,12 @@ func (ks *KeyStore) Export(address common.Address, newPassword string) ([]byte, 
 	if ks.password == "" {
 		return nil, ErrKeyStoreLocked
 	}
+
 	acct, err := ks.GetAccountByAddress(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not export ETH key")
 	}
+
 	return ks.KeyStore.Export(acct, ks.password, newPassword)
 }
 
@@ -145,9 +153,11 @@ func (ks *KeyStore) Delete(address common.Address) error {
 	if ks.password == "" {
 		return ErrKeyStoreLocked
 	}
+
 	acct, err := ks.GetAccountByAddress(address)
 	if err != nil {
 		return errors.Wrap(err, "could not delete ETH key")
 	}
+
 	return ks.KeyStore.Delete(acct, ks.password)
 }

@@ -47,7 +47,6 @@ type txManager struct {
 
 	headTracker *subscription.HeadTracker
 	broadcaster TxBroadcaster
-	confirmer   TxConfirmer
 
 	jobMonitor *jobMonitor
 }
@@ -61,19 +60,18 @@ func NewTxManager(
 	broadcaster := NewTxBroadcaster(ethClient, store, keyStore, config)
 	confirmer := NewTxConfirmer(ethClient, store, keyStore, config)
 	jobMonitor := newJobMonitor(store, config)
-	headTracker :=
-		subscription.NewHeadTracker(
-			ethClient,
-			store,
-			config,
-			[]subscription.HeadTrackable{confirmer, jobMonitor},
-		)
+	headTracker := subscription.NewHeadTracker(
+		ethClient,
+		store,
+		config,
+		[]subscription.HeadTrackable{confirmer, jobMonitor},
+	)
+
 	return &txManager{
 		store:  store,
 		config: config,
 
 		broadcaster: broadcaster,
-		confirmer:   confirmer,
 		headTracker: headTracker,
 		jobMonitor:  jobMonitor,
 	}, nil
