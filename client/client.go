@@ -164,15 +164,15 @@ func (client *Impl) SendTransaction(ctx context.Context, tx *types.Transaction) 
 		"tx", tx,
 	)
 
+	var wg sync.WaitGroup
 	for _, gethClient := range client.SecondaryGethClients {
 		// Parallel send to secondary node
 		client.logger.Tracew("eth.SecondaryClient#SendTransaction(...)", "tx", tx)
 
-		var wg sync.WaitGroup
-		defer wg.Wait()
 		wg.Add(1)
 		go func(gethClient GethClient) {
 			defer wg.Done()
+
 			err := NewSendError(gethClient.SendTransaction(ctx, tx))
 			if err == nil || err.IsNonceTooLowError() || err.IsTransactionAlreadyInMempool() {
 				// Nonce too low or transaction known errors are expected since
@@ -182,6 +182,7 @@ func (client *Impl) SendTransaction(ctx context.Context, tx *types.Transaction) 
 			client.logger.Warnf("secondary eth client returned error", "err", err, "tx", tx)
 		}(gethClient)
 	}
+	wg.Wait()
 
 	return client.GethClient.SendTransaction(ctx, tx)
 }

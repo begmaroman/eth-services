@@ -38,9 +38,6 @@ const (
 	JobStateHandled   = JobState("handled")
 )
 
-// WeiPerEth is amount of Wei currency units in one Eth.
-var WeiPerEth = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-
 var emptyHash = common.Hash{}
 
 type Account struct {
@@ -232,11 +229,11 @@ func (h *Head) MarshalJSON() ([]byte, error) {
 	}
 
 	var jsonHead head
-	if h.Hash != (emptyHash) {
+	if h.Hash != emptyHash {
 		jsonHead.Hash = &h.Hash
 	}
 	jsonHead.Number = (*hexutil.Big)(big.NewInt(int64(h.Number)))
-	if h.ParentHash != (emptyHash) {
+	if h.ParentHash != emptyHash {
 		jsonHead.ParentHash = &h.ParentHash
 	}
 	if h.Timestamp != (time.Time{}) {
