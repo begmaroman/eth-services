@@ -11,13 +11,13 @@ import (
 var _ types.Logger = (*Logrus)(nil)
 
 type Logrus struct {
-	*logrus.Logger
+	logrus.FieldLogger
 }
 
 // NewLogrus creates a wrapped Logrus logger
-func NewLogrus(logger *logrus.Logger) *Logrus {
+func NewLogrus(logger logrus.FieldLogger) *Logrus {
 	return &Logrus{
-		Logger: logger,
+		FieldLogger: logger,
 	}
 }
 
