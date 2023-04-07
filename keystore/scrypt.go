@@ -1,4 +1,4 @@
-package client
+package keystore
 
 import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"

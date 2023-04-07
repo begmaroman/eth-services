@@ -3,6 +3,8 @@ package txmanager
 import (
 	"math/big"
 
+	eskeystore "github.com/begmaroman/eth-services/keystore"
+
 	"github.com/begmaroman/eth-services/client"
 	esStore "github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
@@ -54,7 +56,7 @@ type txManager struct {
 func NewTxManager(
 	ethClient client.Client,
 	store esStore.Store,
-	keyStore client.KeyStoreInterface,
+	keyStore eskeystore.KeyStoreInterface,
 	config *esTypes.Config,
 ) (TxManager, error) {
 	broadcaster := NewTxBroadcaster(ethClient, store, keyStore, config)

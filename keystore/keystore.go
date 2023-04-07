@@ -1,4 +1,4 @@
-package client
+package keystore
 
 import (
 	"fmt"
@@ -46,8 +46,10 @@ type KeyStore struct {
 
 // NewKeyStore creates a keystore for the given directory.
 func NewKeyStore(keyDir string, scryptParams ScryptParams) *KeyStore {
-	ks := keystore.NewKeyStore(keyDir, scryptParams.N, scryptParams.P)
-	return &KeyStore{ks, "", scryptParams}
+	return &KeyStore{
+		keystore.NewKeyStore(keyDir, scryptParams.N, scryptParams.P),
+		"",
+		scryptParams}
 }
 
 // NewInsecureKeyStore creates an *INSECURE* keystore for the given directory.

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	eskeystore "github.com/begmaroman/eth-services/keystore"
+
 	"github.com/begmaroman/eth-services/client"
 	"github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
@@ -52,7 +54,7 @@ type TxBroadcaster interface {
 type txBroadcaster struct {
 	ethClient client.Client
 	store     store.Store
-	keyStore  client.KeyStoreInterface
+	keyStore  eskeystore.KeyStoreInterface
 	config    *types.Config
 	logger    types.Logger
 
@@ -73,7 +75,7 @@ var _ TxBroadcaster = (*txBroadcaster)(nil)
 func NewTxBroadcaster(
 	ethClient client.Client,
 	store store.Store,
-	keyStore client.KeyStoreInterface,
+	keyStore eskeystore.KeyStoreInterface,
 	config *types.Config) TxBroadcaster {
 	return &txBroadcaster{
 		ethClient: ethClient,

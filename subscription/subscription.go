@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/begmaroman/eth-services/client"
 	"github.com/begmaroman/eth-services/store/models"
 	"github.com/begmaroman/eth-services/types"
 
@@ -20,7 +19,7 @@ type Unsubscriber interface {
 // ManagedSubscription encapsulates the connecting, backfilling, and clean up of an
 // ethereum node subscription.
 type ManagedSubscription struct {
-	logSubscriber   client.Client
+	logSubscriber   ethereum.LogFilterer
 	logs            chan models.Log
 	ethSubscription ethereum.Subscription
 	callback        func(models.Log)
@@ -30,7 +29,7 @@ type ManagedSubscription struct {
 // NewManagedSubscription subscribes to the ethereum node with the passed filter
 // and delegates incoming logs to callback.
 func NewManagedSubscription(
-	logSubscriber client.Client,
+	logSubscriber ethereum.LogFilterer,
 	filter ethereum.FilterQuery,
 	callback func(models.Log),
 ) (*ManagedSubscription, error) {

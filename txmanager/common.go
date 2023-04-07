@@ -6,6 +6,9 @@ import (
 	"math/big"
 	"time"
 
+	eskeystore "github.com/begmaroman/eth-services/keystore"
+	"github.com/ethereum/go-ethereum"
+
 	"github.com/begmaroman/eth-services/client"
 	esStore "github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
@@ -24,7 +27,7 @@ const (
 	maxEthNodeRequestTime = 15 * time.Second
 )
 
-func newAttempt(keyStore client.KeyStoreInterface, config *types.Config, tx *models.Tx, gasPrice *big.Int) (*models.TxAttempt, error) {
+func newAttempt(keyStore eskeystore.KeyStoreInterface, config *types.Config, tx *models.Tx, gasPrice *big.Int) (*models.TxAttempt, error) {
 	attempt := models.TxAttempt{}
 	account, err := keyStore.GetAccountByAddress(tx.FromAddress)
 	if err != nil {
@@ -48,7 +51,7 @@ func newAttempt(keyStore client.KeyStoreInterface, config *types.Config, tx *mod
 	return &attempt, nil
 }
 
-func signTx(keyStore client.KeyStoreInterface, account gethAccounts.Account, tx *gethTypes.Transaction, chainID *big.Int) (gethCommon.Hash, []byte, error) {
+func signTx(keyStore eskeystore.KeyStoreInterface, account gethAccounts.Account, tx *gethTypes.Transaction, chainID *big.Int) (gethCommon.Hash, []byte, error) {
 	signedTx, err := keyStore.SignTx(account, tx, chainID)
 	if err != nil {
 		return gethCommon.Hash{}, nil, errors.Wrap(err, "signTx failed")
@@ -63,7 +66,7 @@ func signTx(keyStore client.KeyStoreInterface, account gethAccounts.Account, tx 
 
 // sendTx broadcasts the tx to the ethereum network, writes any relevant data into the TxAttempt and
 // returns an error (or nil) depending on the status.
-func sendTx(ctx context.Context, ethClient client.Client, attempt *models.TxAttempt, logger types.Logger) *client.SendError {
+func sendTx(ctx context.Context, txSender ethereum.TransactionSender, attempt *models.TxAttempt, logger types.Logger) *client.SendError {
 	signedTx, err := attempt.GetSignedTx()
 	if err != nil {
 		return client.NewFatalSendError(err)
@@ -71,7 +74,8 @@ func sendTx(ctx context.Context, ethClient client.Client, attempt *models.TxAtte
 
 	ctx, cancel := context.WithTimeout(ctx, maxEthNodeRequestTime)
 	defer cancel()
-	err = ethClient.SendTransaction(ctx, signedTx)
+
+	err = txSender.SendTransaction(ctx, signedTx)
 	err = errors.WithStack(err)
 
 	logger.Debugw("TxManager: Broadcasting transaction",

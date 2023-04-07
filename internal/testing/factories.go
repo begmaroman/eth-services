@@ -9,7 +9,7 @@ import (
 	mathRand "math/rand"
 	"testing"
 
-	"github.com/begmaroman/eth-services/client"
+	eskeystore "github.com/begmaroman/eth-services/keystore"
 	esStore "github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
 	"github.com/google/uuid"
@@ -219,7 +219,7 @@ func MustInsertFatalErrorTx(t *testing.T, store esStore.Store, fromAddress commo
 func MustAddRandomAccountToKeystore(
 	t testing.TB,
 	store esStore.Store,
-	keyStore client.KeyStoreInterface,
+	keyStore eskeystore.KeyStoreInterface,
 	opts ...interface{},
 ) (account *models.Account, address common.Address) {
 	t.Helper()
@@ -236,7 +236,7 @@ func MustAddAccountToKeyStore(
 	account *models.Account,
 	keyJSONBytes []byte,
 	store esStore.Store,
-	keyStore client.KeyStoreInterface,
+	keyStore eskeystore.KeyStoreInterface,
 ) {
 	t.Helper()
 
@@ -269,7 +269,7 @@ func MustGenerateRandomAccount(t testing.TB, opts ...interface{}) (account *mode
 		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),
 		PrivateKey: privateKeyECDSA,
 	}
-	keyJSONBytes, err = keystore.EncryptKey(k, Password, client.FastScryptParams.N, client.FastScryptParams.P)
+	keyJSONBytes, err = keystore.EncryptKey(k, Password, eskeystore.FastScryptParams.N, eskeystore.FastScryptParams.P)
 	require.NoError(t, err)
 
 	var nextNonce *int64

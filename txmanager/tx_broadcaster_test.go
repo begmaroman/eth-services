@@ -8,7 +8,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/begmaroman/eth-services/client"
+	eskeystore "github.com/begmaroman/eth-services/keystore"
+
 	"github.com/begmaroman/eth-services/internal/mocks"
 	esTesting "github.com/begmaroman/eth-services/internal/testing"
 	esStore "github.com/begmaroman/eth-services/store"
@@ -35,7 +36,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_Success(t *testing.T) {
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
 
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 	tb := txmanager.NewTxBroadcaster(ethClient, store, keyStore, config)
@@ -297,7 +298,7 @@ func TestTxBroadcaster_AssignsNonceOnFirstRun(t *testing.T) {
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
 
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore)
 
 	ethClient := new(mocks.Client)
@@ -403,7 +404,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -438,7 +439,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -470,7 +471,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -501,7 +502,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -533,7 +534,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -567,7 +568,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_ResumingFromCrash(t *testing.T) {
 		store := esTesting.NewStore(t)
 		config := esTesting.NewConfig(t)
 		require.NoError(t, os.RemoveAll(config.KeysDir))
-		keyStore := client.NewInsecureKeyStore(config.KeysDir)
+		keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 		account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, nextNonce)
 		ethClient := new(mocks.Client)
 
@@ -630,7 +631,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_Errors(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 

@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	eskeystore "github.com/begmaroman/eth-services/keystore"
+
 	"github.com/begmaroman/eth-services/client"
 	esStore "github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
@@ -30,7 +32,7 @@ type TxConfirmer interface {
 	CheckForReceipts(ctx context.Context, blockNum int64) error
 	BumpGasWhereNecessary(ctx context.Context, accounts []*models.Account, blockHeight int64) error
 	EnsureConfirmedTxsInLongestChain(ctx context.Context, accounts []*models.Account, head *models.Head) error
-	SetKeyStore(keyStore client.KeyStoreInterface)
+	SetKeyStore(keyStore eskeystore.KeyStoreInterface)
 }
 
 // TxConfirmer is a broad service which performs four different tasks in sequence on every new longest chain
@@ -42,7 +44,7 @@ type TxConfirmer interface {
 type txConfirmer struct {
 	ethClient client.Client
 	store     esStore.Store
-	keyStore  client.KeyStoreInterface
+	keyStore  eskeystore.KeyStoreInterface
 	config    *types.Config
 	logger    types.Logger
 
@@ -52,7 +54,7 @@ type txConfirmer struct {
 func NewTxConfirmer(
 	ethClient client.Client,
 	store esStore.Store,
-	keyStore client.KeyStoreInterface,
+	keyStore eskeystore.KeyStoreInterface,
 	config *types.Config,
 ) TxConfirmer {
 	return &txConfirmer{
@@ -161,7 +163,7 @@ func (tc *txConfirmer) CheckForReceipts(ctx context.Context, blockNum int64) err
 	return nil
 }
 
-func (tc *txConfirmer) SetKeyStore(keyStore client.KeyStoreInterface) {
+func (tc *txConfirmer) SetKeyStore(keyStore eskeystore.KeyStoreInterface) {
 	tc.keyStore = keyStore
 }
 

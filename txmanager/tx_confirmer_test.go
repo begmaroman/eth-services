@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/begmaroman/eth-services/client"
 	"github.com/begmaroman/eth-services/internal/mocks"
 	esTesting "github.com/begmaroman/eth-services/internal/testing"
+	eskeystore "github.com/begmaroman/eth-services/keystore"
 	esStore "github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/txmanager"
 	"github.com/pkg/errors"
@@ -85,7 +85,7 @@ func TestTxConfirmer_SetBroadcastBeforeBlockNum(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	_, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 
@@ -135,7 +135,7 @@ func TestTxConfirmer_CheckForReceipts(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	_, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore)
 	ethClient := new(mocks.Client)
 
@@ -395,7 +395,7 @@ func TestTxConfirmer_CheckForReceipts_confirmed_missing_receipt(t *testing.T) {
 	config := esTesting.NewConfig(t)
 	config.FinalityDepth = 50
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	_, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 
@@ -647,7 +647,7 @@ func TestTxConfirmer_GetTxsRequiringNewAttempt(t *testing.T) {
 	config := esTesting.NewConfig(t)
 	config.FinalityDepth = 50
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	_, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 
 	currentHead := int64(30)
@@ -1426,7 +1426,7 @@ func TestTxConfirmer_BumpGasWhereNecessary_WhenOutOfEth(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 	accounts := []*models.Account{account}
@@ -1532,7 +1532,7 @@ func TestTxConfirmer_EnsureConfirmedTransactionsInLongestChain(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	require.NoError(t, os.RemoveAll(config.KeysDir))
-	keyStore := client.NewInsecureKeyStore(config.KeysDir)
+	keyStore := eskeystore.NewInsecureKeyStore(config.KeysDir)
 	account, fromAddress := esTesting.MustAddRandomAccountToKeystore(t, store, keyStore, 0)
 	ethClient := new(mocks.Client)
 	accounts := []*models.Account{account}
