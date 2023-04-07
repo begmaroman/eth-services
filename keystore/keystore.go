@@ -20,8 +20,8 @@ const EthereumMessageHashPrefix = "\x19Ethereum Signed Message:\n32"
 
 var ErrKeyStoreLocked = errors.New("keystore is locked (HINT: did you forget to call keystore.Unlock?)")
 
-//go:generate mockery --name KeyStoreInterface --output ../internal/mocks/ --case=underscore
-type KeyStoreInterface interface {
+//go:generate mockery --name KeyStore --output ../internal/mocks/ --case=underscore
+type KeyStore interface {
 	Unlock(password string) error
 	Accounts() []accounts.Account
 	Wallets() []accounts.Wallet
@@ -37,36 +37,37 @@ type KeyStoreInterface interface {
 	SignTx(account accounts.Account, tx *ethTypes.Transaction, chainID *big.Int) (*ethTypes.Transaction, error)
 }
 
-// KeyStore manages a key storage directory on disk.
-type KeyStore struct {
+// keyStore manages a key storage directory on disk.
+type keyStore struct {
 	*keystore.KeyStore
 	password     string
 	scryptParams ScryptParams
 }
 
 // NewKeyStore creates a keystore for the given directory.
-func NewKeyStore(keyDir string, scryptParams ScryptParams) *KeyStore {
-	return &KeyStore{
+func NewKeyStore(keyDir string, scryptParams ScryptParams) KeyStore {
+	return &keyStore{
 		keystore.NewKeyStore(keyDir, scryptParams.N, scryptParams.P),
 		"",
-		scryptParams}
+		scryptParams,
+	}
 }
 
 // NewInsecureKeyStore creates an *INSECURE* keystore for the given directory.
 // NOTE: Should only be used for testing!
-func NewInsecureKeyStore(keyDir string) *KeyStore {
+func NewInsecureKeyStore(keyDir string) KeyStore {
 	return NewKeyStore(keyDir, FastScryptParams)
 }
 
 // HasAccounts returns true if there are accounts located at the keystore
 // directory.
-func (ks *KeyStore) HasAccounts() bool {
+func (ks *keyStore) HasAccounts() bool {
 	return len(ks.Accounts()) > 0
 }
 
 // Unlock uses the given password to try to unlock accounts located in the
 // keystore directory.
-func (ks *KeyStore) Unlock(password string) error {
+func (ks *keyStore) Unlock(password string) error {
 	var merr error
 	for _, account := range ks.Accounts() {
 		err := ks.KeyStore.Unlock(account, password)
@@ -79,7 +80,7 @@ func (ks *KeyStore) Unlock(password string) error {
 }
 
 // NewAccount adds an account to the keystore
-func (ks *KeyStore) NewAccount() (accounts.Account, error) {
+func (ks *keyStore) NewAccount() (accounts.Account, error) {
 	if ks.password == "" {
 		return accounts.Account{}, ErrKeyStoreLocked
 	}
@@ -94,16 +95,16 @@ func (ks *KeyStore) NewAccount() (accounts.Account, error) {
 }
 
 // SignTx uses the unlocked account to sign the given transaction.
-func (ks *KeyStore) SignTx(account accounts.Account, tx *ethTypes.Transaction, chainID *big.Int) (*ethTypes.Transaction, error) {
+func (ks *keyStore) SignTx(account accounts.Account, tx *ethTypes.Transaction, chainID *big.Int) (*ethTypes.Transaction, error) {
 	return ks.KeyStore.SignTx(account, tx, chainID)
 }
 
 // GetAccounts returns all accounts
-func (ks *KeyStore) GetAccounts() []accounts.Account {
+func (ks *keyStore) GetAccounts() []accounts.Account {
 	return ks.Accounts()
 }
 
-func (ks *KeyStore) HasAccountWithAddress(address common.Address) bool {
+func (ks *keyStore) HasAccountWithAddress(address common.Address) bool {
 	for _, acct := range ks.Accounts() {
 		if acct.Address == address {
 			return true
@@ -114,7 +115,7 @@ func (ks *KeyStore) HasAccountWithAddress(address common.Address) bool {
 }
 
 // GetAccountByAddress returns the account matching the address provided, or an error if it is missing
-func (ks *KeyStore) GetAccountByAddress(address common.Address) (accounts.Account, error) {
+func (ks *keyStore) GetAccountByAddress(address common.Address) (accounts.Account, error) {
 	for _, account := range ks.Accounts() {
 		if account.Address == address {
 			return account, nil
@@ -124,7 +125,7 @@ func (ks *KeyStore) GetAccountByAddress(address common.Address) (accounts.Accoun
 	return accounts.Account{}, errors.New("no account found with that address")
 }
 
-func (ks *KeyStore) Import(keyJSON []byte, oldPassword string) (accounts.Account, error) {
+func (ks *keyStore) Import(keyJSON []byte, oldPassword string) (accounts.Account, error) {
 	if ks.password == "" {
 		return accounts.Account{}, ErrKeyStoreLocked
 	}
@@ -138,7 +139,7 @@ func (ks *KeyStore) Import(keyJSON []byte, oldPassword string) (accounts.Account
 	return acct, err
 }
 
-func (ks *KeyStore) Export(address common.Address, newPassword string) ([]byte, error) {
+func (ks *keyStore) Export(address common.Address, newPassword string) ([]byte, error) {
 	if ks.password == "" {
 		return nil, ErrKeyStoreLocked
 	}
@@ -151,7 +152,7 @@ func (ks *KeyStore) Export(address common.Address, newPassword string) ([]byte, 
 	return ks.KeyStore.Export(acct, ks.password, newPassword)
 }
 
-func (ks *KeyStore) Delete(address common.Address) error {
+func (ks *keyStore) Delete(address common.Address) error {
 	if ks.password == "" {
 		return ErrKeyStoreLocked
 	}

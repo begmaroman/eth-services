@@ -56,7 +56,7 @@ type txManager struct {
 func NewTxManager(
 	ethClient client.Client,
 	store esStore.Store,
-	keyStore eskeystore.KeyStoreInterface,
+	keyStore eskeystore.KeyStore,
 	config *esTypes.Config,
 ) (TxManager, error) {
 	broadcaster := NewTxBroadcaster(ethClient, store, keyStore, config)

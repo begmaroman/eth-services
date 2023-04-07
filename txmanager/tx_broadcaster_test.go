@@ -966,7 +966,7 @@ func TestTxBroadcaster_ProcessUnstartedTxs_KeystoreErrors(t *testing.T) {
 	localNonce := 0
 
 	store := esTesting.NewStore(t)
-	keyStore := new(mocks.KeyStoreInterface)
+	keyStore := new(mocks.KeyStore)
 	account := esTesting.MustInsertRandomAccount(t, store, 0)
 	fromAddress := account.Address
 	config := esTesting.NewConfig(t)
@@ -1068,7 +1068,7 @@ func TestTxBroadcaster_Trigger(t *testing.T) {
 	store := esTesting.NewStore(t)
 	config := esTesting.NewConfig(t)
 	ethClient := new(mocks.Client)
-	keyStore := new(mocks.KeyStoreInterface)
+	keyStore := new(mocks.KeyStore)
 	tb := txmanager.NewTxBroadcaster(ethClient, store, keyStore, config)
 
 	tb.Trigger()

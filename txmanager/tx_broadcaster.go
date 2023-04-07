@@ -54,7 +54,7 @@ type TxBroadcaster interface {
 type txBroadcaster struct {
 	ethClient client.Client
 	store     store.Store
-	keyStore  eskeystore.KeyStoreInterface
+	keyStore  eskeystore.KeyStore
 	config    *types.Config
 	logger    types.Logger
 
@@ -75,7 +75,7 @@ var _ TxBroadcaster = (*txBroadcaster)(nil)
 func NewTxBroadcaster(
 	ethClient client.Client,
 	store store.Store,
-	keyStore eskeystore.KeyStoreInterface,
+	keyStore eskeystore.KeyStore,
 	config *types.Config) TxBroadcaster {
 	return &txBroadcaster{
 		ethClient: ethClient,

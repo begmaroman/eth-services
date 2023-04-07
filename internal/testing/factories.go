@@ -219,7 +219,7 @@ func MustInsertFatalErrorTx(t *testing.T, store esStore.Store, fromAddress commo
 func MustAddRandomAccountToKeystore(
 	t testing.TB,
 	store esStore.Store,
-	keyStore eskeystore.KeyStoreInterface,
+	keyStore eskeystore.KeyStore,
 	opts ...interface{},
 ) (account *models.Account, address common.Address) {
 	t.Helper()
@@ -236,7 +236,7 @@ func MustAddAccountToKeyStore(
 	account *models.Account,
 	keyJSONBytes []byte,
 	store esStore.Store,
-	keyStore eskeystore.KeyStoreInterface,
+	keyStore eskeystore.KeyStore,
 ) {
 	t.Helper()
 

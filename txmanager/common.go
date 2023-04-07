@@ -27,7 +27,7 @@ const (
 	maxEthNodeRequestTime = 15 * time.Second
 )
 
-func newAttempt(keyStore eskeystore.KeyStoreInterface, config *types.Config, tx *models.Tx, gasPrice *big.Int) (*models.TxAttempt, error) {
+func newAttempt(keyStore eskeystore.KeyStore, config *types.Config, tx *models.Tx, gasPrice *big.Int) (*models.TxAttempt, error) {
 	attempt := models.TxAttempt{}
 	account, err := keyStore.GetAccountByAddress(tx.FromAddress)
 	if err != nil {
@@ -51,7 +51,7 @@ func newAttempt(keyStore eskeystore.KeyStoreInterface, config *types.Config, tx 
 	return &attempt, nil
 }
 
-func signTx(keyStore eskeystore.KeyStoreInterface, account gethAccounts.Account, tx *gethTypes.Transaction, chainID *big.Int) (gethCommon.Hash, []byte, error) {
+func signTx(keyStore eskeystore.KeyStore, account gethAccounts.Account, tx *gethTypes.Transaction, chainID *big.Int) (gethCommon.Hash, []byte, error) {
 	signedTx, err := keyStore.SignTx(account, tx, chainID)
 	if err != nil {
 		return gethCommon.Hash{}, nil, errors.Wrap(err, "signTx failed")

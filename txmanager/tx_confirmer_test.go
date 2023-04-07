@@ -852,7 +852,7 @@ func TestTxConfirmer_BumpGasWhereNecessary(t *testing.T) {
 	config.MaxGasPrice = big.NewInt(500000000000) // 500 Gwei
 	ethClient := new(mocks.Client)
 	// Use a mock KeyStore for this test
-	keyStore := new(mocks.KeyStoreInterface)
+	keyStore := new(mocks.KeyStore)
 
 	tc := txmanager.NewTxConfirmer(ethClient, store, keyStore, config)
 	currentHead := int64(30)
@@ -900,7 +900,7 @@ func TestTxConfirmer_BumpGasWhereNecessary(t *testing.T) {
 		keyStore.AssertExpectations(t)
 	})
 
-	keyStore = new(mocks.KeyStoreInterface)
+	keyStore = new(mocks.KeyStore)
 	keyStore.On("GetAccountByAddress", fromAddress).
 		Return(gethAccounts.Account{Address: fromAddress}, nil)
 	tc.SetKeyStore(keyStore)
@@ -934,7 +934,7 @@ func TestTxConfirmer_BumpGasWhereNecessary(t *testing.T) {
 		keyStore.AssertExpectations(t)
 	})
 
-	keyStore = new(mocks.KeyStoreInterface)
+	keyStore = new(mocks.KeyStore)
 	tc.SetKeyStore(keyStore)
 	keyStore.On("GetAccountByAddress", fromAddress).
 		Return(gethAccounts.Account{Address: fromAddress}, nil)
