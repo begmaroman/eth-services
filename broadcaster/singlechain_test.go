@@ -16,7 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nerifnetwork/workflow/internal/contracts/wrapper"
+	"github.com/begmaroman/eth-services/broadcaster/contracts"
 )
 
 const (
@@ -492,7 +492,7 @@ func Test_SingleChainBroadcaster_BlockTrigger(t *testing.T) {
 	})
 }
 
-func initSimulatedBackend(ctx context.Context, t *testing.T) (common.Address, *bind.TransactOpts, *backends.SimulatedBackend, *wrapper.Counter) {
+func initSimulatedBackend(ctx context.Context, t *testing.T) (common.Address, *bind.TransactOpts, *backends.SimulatedBackend, *contracts.Counter) {
 	t.Helper()
 
 	key, _ := crypto.GenerateKey()
@@ -504,7 +504,7 @@ func initSimulatedBackend(ctx context.Context, t *testing.T) (common.Address, *b
 		addr: {Balance: big.NewInt(params.Ether * 2)},
 	}, 10000000)
 
-	addr, tx, testContract, err := wrapper.DeployCounter(txOpts, simulatedBackend, big.NewInt(1000), big.NewInt(1))
+	addr, tx, testContract, err := contracts.DeployCounter(txOpts, simulatedBackend, big.NewInt(1000), big.NewInt(1))
 	require.NoError(t, err)
 
 	simulatedBackend.Commit()
