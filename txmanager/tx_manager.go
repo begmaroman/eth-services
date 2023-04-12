@@ -3,6 +3,8 @@ package txmanager
 import (
 	"math/big"
 
+	"github.com/begmaroman/eth-services/broadcaster"
+
 	eskeystore "github.com/begmaroman/eth-services/keystore"
 
 	"github.com/begmaroman/eth-services/client"
@@ -47,22 +49,24 @@ type txManager struct {
 	store  esStore.Store
 	config *types.Config
 
-	headTracker *subscription.HeadTracker
-	broadcaster TxBroadcaster
+	headTracker   *subscription.HeadTracker
+	txBroadcaster TxBroadcaster
 
 	jobMonitor *jobMonitor
 }
 
 func NewTxManager(
+	broadcaster broadcaster.Broadcaster,
 	ethClient client.GethClient,
 	store esStore.Store,
 	keyStore eskeystore.KeyStore,
 	config *esTypes.Config,
 ) (TxManager, error) {
-	broadcaster := NewTxBroadcaster(ethClient, store, keyStore, config)
+	txBroadcaster := NewTxBroadcaster(ethClient, store, keyStore, config)
 	confirmer := NewTxConfirmer(ethClient, store, keyStore, config)
 	jobMonitor := newJobMonitor(store, config)
 	headTracker := subscription.NewHeadTracker(
+		broadcaster,
 		ethClient,
 		store,
 		config,
@@ -73,9 +77,9 @@ func NewTxManager(
 		store:  store,
 		config: config,
 
-		broadcaster: broadcaster,
-		headTracker: headTracker,
-		jobMonitor:  jobMonitor,
+		txBroadcaster: txBroadcaster,
+		headTracker:   headTracker,
+		jobMonitor:    jobMonitor,
 	}, nil
 }
 
@@ -84,11 +88,11 @@ func (txm *txManager) Start() error {
 		return err
 	}
 
-	return txm.broadcaster.Start()
+	return txm.txBroadcaster.Start()
 }
 
 func (txm *txManager) RegisterAccount(address gethCommon.Address) error {
-	return txm.broadcaster.RegisterAccount(address)
+	return txm.txBroadcaster.RegisterAccount(address)
 }
 
 func (txm *txManager) AddTx(
@@ -99,7 +103,7 @@ func (txm *txManager) AddTx(
 	gasLimit uint64,
 ) (uuid.UUID, error) {
 	txID := uuid.New()
-	if err := txm.broadcaster.AddTx(txID, fromAddress, to, value, payload, gasLimit); err != nil {
+	if err := txm.txBroadcaster.AddTx(txID, fromAddress, to, value, payload, gasLimit); err != nil {
 		return uuid.Nil, err
 	}
 

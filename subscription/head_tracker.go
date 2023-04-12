@@ -121,6 +121,7 @@ type HeadTracker struct {
 // Can be passed in an optional sleeper object that will dictate how often
 // it tries to reconnect.
 func NewHeadTracker(
+	broadcaster broadcaster.Broadcaster,
 	ethClient client.GethClient,
 	store store.Store,
 	config *types.Config,
@@ -134,12 +135,13 @@ func NewHeadTracker(
 		sleeper = NewBackoffSleeper()
 	}
 	return &HeadTracker{
-		ethClient: ethClient,
-		store:     store,
-		config:    config,
-		logger:    config.Logger,
-		callbacks: callbacks,
-		sleeper:   sleeper,
+		broadcaster: broadcaster,
+		ethClient:   ethClient,
+		store:       store,
+		config:      config,
+		logger:      config.Logger,
+		callbacks:   callbacks,
+		sleeper:     sleeper,
 	}
 }
 
