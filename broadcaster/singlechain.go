@@ -127,9 +127,12 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 
 				// Call block subscribers
 				errGroup.Go(func() error {
-					targetHeader, err := l.client.HeaderByNumber(ctx, targetBlock)
-					if err != nil {
-						return errors.Wrap(err, "failed to get a target header")
+					targetHeader := head
+					if targetBlock.Cmp(targetHeader.Number) != 0 {
+						targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock)
+						if err != nil {
+							return errors.Wrap(err, "failed to get a target header")
+						}
 					}
 
 					l.handleBlock(ctx, *targetHeader)
