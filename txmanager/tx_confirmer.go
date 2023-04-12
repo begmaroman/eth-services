@@ -251,10 +251,12 @@ func (tc *txConfirmer) fetchReceipts(ctx context.Context, chTxs <-chan *models.T
 func (tc *txConfirmer) fetchReceipt(ctx context.Context, hash gethCommon.Hash) (*gethTypes.Receipt, error) {
 	ctx, cancel := context.WithTimeout(ctx, maxEthNodeRequestTime)
 	defer cancel()
+
 	receipt, err := tc.ethClient.TransactionReceipt(ctx, hash)
 	if err != nil && err.Error() == "not found" {
 		return nil, nil
 	}
+
 	return receipt, err
 }
 
