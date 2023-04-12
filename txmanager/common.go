@@ -24,7 +24,7 @@ import (
 const (
 	// maxEthNodeRequestTime is the worst case time we will wait for a response
 	// from the eth node before we consider it to be an error
-	maxEthNodeRequestTime = 15 * time.Second
+	maxEthNodeRequestTime = 30 * time.Second
 )
 
 func newAttempt(keyStore eskeystore.KeyStore, config *types.Config, tx *models.Tx, gasPrice *big.Int) (*models.TxAttempt, error) {
