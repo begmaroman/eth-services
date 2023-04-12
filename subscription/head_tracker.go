@@ -516,23 +516,37 @@ func (ht *HeadTracker) subscribeToHead() error {
 	ht.headMutex.Lock()
 	defer ht.headMutex.Unlock()
 
+	ethereumChainID, err := ht.ethClient.ChainID(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	if ethereumChainID.Cmp(ht.config.ChainID) != 0 {
+		return fmt.Errorf(
+			"ethereum ChainID doesn't match configured ChainID: config ID=%d, eth RPC ID=%d",
+			ht.config.ChainID,
+			ethereumChainID,
+		)
+	}
+
 	ht.inHeaders = make(chan *etypes.Header)
 	var rb *headRingBuffer
 	rb, ht.outHeaders = newHeadRingBuffer(ht.inHeaders, int(ht.config.HeadTrackerMaxBufferSize), ht.logger)
 	// It will autostop when we close inHeaders channel
 	rb.Start()
 
-	cancelHeadSum, err := ht.broadcaster.RegisterBlockHandler("", 0, func(ctx context.Context, header etypes.Header) {
-		ht.inHeaders <- &header
-	}, broadcaster.BlockOptions{
-		Number: broadcaster.EachBlockNumber(),
-	})
+	cancelHeadSum, err := ht.broadcaster.RegisterBlockHandler(
+		fmt.Sprintf("txmanager-head-%d", ethereumChainID),
+		ethereumChainID.Uint64(),
+		func(ctx context.Context, header etypes.Header) {
+			ht.inHeaders <- &header
+		},
+		broadcaster.BlockOptions{
+			Number: broadcaster.EachBlockNumber(),
+		},
+	)
 	if err != nil {
 		return errors.Wrap(err, "Broadcaster#RegisterBlockHandler")
-	}
-
-	if err = verifyEthereumChainID(ht); err != nil {
-		return errors.Wrap(err, "verifyEthereumChainID failed")
 	}
 
 	ht.cancelHeadSum = cancelHeadSum
@@ -567,23 +581,5 @@ func (ht *HeadTracker) setHighestSeenHeadFromDB() error {
 		return err
 	}
 	ht.highestSeenHead = head
-	return nil
-}
-
-// verifyEthereumChainID checks whether or not the ChainID from the config matches the ChainID
-// reported by the Ethereum node.
-func verifyEthereumChainID(ht *HeadTracker) error {
-	ethereumChainID, err := ht.ethClient.ChainID(context.TODO())
-	if err != nil {
-		return err
-	}
-
-	if ethereumChainID.Cmp(ht.config.ChainID) != 0 {
-		return fmt.Errorf(
-			"ethereum ChainID doesn't match configured ChainID: config ID=%d, eth RPC ID=%d",
-			ht.config.ChainID,
-			ethereumChainID,
-		)
-	}
 	return nil
 }
