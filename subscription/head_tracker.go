@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/begmaroman/eth-services/broadcaster"
+
 	"github.com/begmaroman/eth-services/client"
 	"github.com/begmaroman/eth-services/store"
 	"github.com/begmaroman/eth-services/store/models"
@@ -99,9 +101,10 @@ type HeadTracker struct {
 	callbacks             []HeadTrackable
 	inHeaders             chan *etypes.Header
 	outHeaders            chan models.Head
-	headSubscription      ethereum.Subscription
+	cancelHeadSum         func()
 	highestSeenHead       *models.Head
-	ethClient             client.Client
+	broadcaster           broadcaster.Broadcaster
+	ethClient             client.GethClient
 	store                 store.Store
 	headMutex             sync.RWMutex
 	connected             bool
@@ -118,7 +121,7 @@ type HeadTracker struct {
 // Can be passed in an optional sleeper object that will dictate how often
 // it tries to reconnect.
 func NewHeadTracker(
-	ethClient client.Client,
+	ethClient client.GethClient,
 	store store.Store,
 	config *types.Config,
 	callbacks []HeadTrackable,
@@ -312,10 +315,6 @@ func (ht *HeadTracker) receiveHeaders() error {
 				return err
 			}
 			cancel()
-		case err, open := <-ht.headSubscription.Err():
-			if open && err != nil {
-				return err
-			}
 		}
 	}
 }
@@ -521,16 +520,20 @@ func (ht *HeadTracker) subscribeToHead() error {
 	// It will autostop when we close inHeaders channel
 	rb.Start()
 
-	sub, err := ht.ethClient.SubscribeNewHead(context.Background(), ht.inHeaders)
+	cancelHeadSum, err := ht.broadcaster.RegisterBlockHandler("", 0, func(ctx context.Context, header etypes.Header) {
+		ht.inHeaders <- &header
+	}, broadcaster.BlockOptions{
+		Number: broadcaster.EachBlockNumber(),
+	})
 	if err != nil {
-		return errors.Wrap(err, "EthClient#SubscribeNewHead")
+		return errors.Wrap(err, "Broadcaster#RegisterBlockHandler")
 	}
 
-	if err := verifyEthereumChainID(ht); err != nil {
+	if err = verifyEthereumChainID(ht); err != nil {
 		return errors.Wrap(err, "verifyEthereumChainID failed")
 	}
 
-	ht.headSubscription = sub
+	ht.cancelHeadSum = cancelHeadSum
 	ht.connected = true
 
 	ht.connect(ht.highestSeenHead)
@@ -545,7 +548,7 @@ func (ht *HeadTracker) unsubscribeFromHead() error {
 		return nil
 	}
 
-	timedUnsubscribe(ht.headSubscription, ht.logger)
+	timedUnsubscribe(ht.cancelHeadSum, ht.logger)
 
 	ht.connected = false
 	ht.disconnect()

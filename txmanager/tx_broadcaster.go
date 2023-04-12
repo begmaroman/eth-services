@@ -52,7 +52,7 @@ type TxBroadcaster interface {
 }
 
 type txBroadcaster struct {
-	ethClient client.Client
+	ethClient client.GethClient
 	store     store.Store
 	keyStore  eskeystore.KeyStore
 	config    *types.Config
@@ -73,7 +73,7 @@ var _ TxBroadcaster = (*txBroadcaster)(nil)
 
 // NewTxBroadcaster returns a new concrete TxBroadcaster
 func NewTxBroadcaster(
-	ethClient client.Client,
+	ethClient client.GethClient,
 	store store.Store,
 	keyStore eskeystore.KeyStore,
 	config *types.Config) TxBroadcaster {

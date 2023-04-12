@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
@@ -29,7 +28,6 @@ type Client interface {
 	Dial(ctx context.Context) error
 	Close()
 
-	SendRawTx(bytes []byte) (common.Hash, error)
 	Call(result interface{}, method string, args ...interface{}) error
 	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
 }
@@ -145,11 +143,7 @@ func (client *Impl) TransactionReceipt(ctx context.Context, txHash common.Hash) 
 	client.logger.Debugw("eth.Client#TransactionReceipt(...)",
 		"txHash", txHash,
 	)
-	receipt, err := client.GethClient.TransactionReceipt(ctx, txHash)
-	if err != nil && strings.Contains(err.Error(), "missing required field") {
-		return nil, ethereum.NotFound
-	}
-	return receipt, err
+	return client.GethClient.TransactionReceipt(ctx, txHash)
 }
 
 func (client *Impl) ChainID(ctx context.Context) (*big.Int, error) {

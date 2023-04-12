@@ -54,7 +54,7 @@ type txManager struct {
 }
 
 func NewTxManager(
-	ethClient client.Client,
+	ethClient client.GethClient,
 	store esStore.Store,
 	keyStore eskeystore.KeyStore,
 	config *esTypes.Config,
@@ -80,10 +80,10 @@ func NewTxManager(
 }
 
 func (txm *txManager) Start() error {
-	err := txm.headTracker.Start()
-	if err != nil {
+	if err := txm.headTracker.Start(); err != nil {
 		return err
 	}
+
 	return txm.broadcaster.Start()
 }
 
@@ -95,14 +95,14 @@ func (txm *txManager) AddTx(
 	fromAddress gethCommon.Address,
 	to gethCommon.Address,
 	value *big.Int,
-	encodedPayload []byte,
+	payload []byte,
 	gasLimit uint64,
 ) (uuid.UUID, error) {
 	txID := uuid.New()
-	err := txm.broadcaster.AddTx(txID, fromAddress, to, value, encodedPayload, gasLimit)
-	if err != nil {
+	if err := txm.broadcaster.AddTx(txID, fromAddress, to, value, payload, gasLimit); err != nil {
 		return uuid.Nil, err
 	}
+
 	return txID, nil
 }
 

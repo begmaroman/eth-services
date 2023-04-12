@@ -3,6 +3,8 @@ package subscription
 import (
 	"time"
 
+	"github.com/begmaroman/eth-services/types"
+
 	"github.com/jpillora/backoff"
 	"github.com/tevino/abool"
 )
@@ -63,4 +65,20 @@ func (bs *BackoffSleeper) Duration() time.Duration {
 func (bs *BackoffSleeper) Reset() {
 	bs.beenRun.UnSet()
 	bs.Backoff.Reset()
+}
+
+// timedUnsubscribe attempts to unsubscribe but aborts abruptly after a time delay
+// unblocking the application. This is an effort to mitigate the occasional
+// indefinite block described here from go-ethereum.
+func timedUnsubscribe(unsubscriber func(), logger types.Logger) {
+	unsubscribed := make(chan struct{})
+	go func() {
+		unsubscriber()
+		close(unsubscribed)
+	}()
+	select {
+	case <-unsubscribed:
+	case <-time.After(100 * time.Millisecond):
+		logger.Warn("Subscription Unsubscribe timed out.")
+	}
 }

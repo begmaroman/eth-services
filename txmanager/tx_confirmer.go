@@ -42,7 +42,7 @@ type TxConfirmer interface {
 // Step 4: Check confirmed transactions to make sure they are still in the longest chain (reorg protection)
 
 type txConfirmer struct {
-	ethClient client.Client
+	ethClient client.GethClient
 	store     esStore.Store
 	keyStore  eskeystore.KeyStore
 	config    *types.Config
@@ -52,7 +52,7 @@ type txConfirmer struct {
 }
 
 func NewTxConfirmer(
-	ethClient client.Client,
+	ethClient client.GethClient,
 	store esStore.Store,
 	keyStore eskeystore.KeyStore,
 	config *types.Config,
