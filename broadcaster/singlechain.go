@@ -3,7 +3,6 @@ package broadcaster
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
@@ -25,34 +24,31 @@ type Client interface {
 
 // Options contains options to create a broadcaster
 type Options struct {
-	ChainID       uint64
-	FinalityDepth uint64
-	ForceBlock    uint64
+	ChainID    uint64
+	ForceBlock uint64
 }
 
 // singleChainBroadcaster implements Broadcaster interface.
 // It uses a blockchain node as an event source.
 type singleChainBroadcaster struct {
-	logger        logrus.FieldLogger
-	client        Client
-	chainID       uint64
-	finalityDepth *big.Int
-	forceBlock    uint64
-	sbs           *subscriptions
-	stop          chan struct{}
-	wg            sync.WaitGroup
+	logger     logrus.FieldLogger
+	client     Client
+	chainID    uint64
+	forceBlock uint64
+	sbs        *subscriptions
+	stop       chan struct{}
+	wg         sync.WaitGroup
 }
 
 // NewSingleChain is the constructor of singleChainBroadcaster
 func NewSingleChain(logger logrus.FieldLogger, client Client, opts Options) (Broadcaster, error) {
 	return &singleChainBroadcaster{
-		logger:        logger,
-		client:        client,
-		chainID:       opts.ChainID,
-		finalityDepth: big.NewInt(0).SetUint64(opts.FinalityDepth),
-		forceBlock:    opts.ForceBlock,
-		sbs:           newSubscriptions(),
-		stop:          make(chan struct{}),
+		logger:     logger,
+		client:     client,
+		chainID:    opts.ChainID,
+		forceBlock: opts.ForceBlock,
+		sbs:        newSubscriptions(),
+		stop:       make(chan struct{}),
 	}, nil
 }
 
@@ -110,17 +106,12 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 			case <-l.stop:
 				return
 			case head := <-ch:
-				targetBlock := big.NewInt(0)
+				targetBlock := head.Number
 				if l.forceBlock > 0 {
 					targetBlock = targetBlock.SetUint64(l.forceBlock)
-				} else {
-					targetBlock = targetBlock.Sub(head.Number, l.finalityDepth)
 				}
 
-				logger := l.logger.WithFields(logrus.Fields{
-					"block":        head.Number.String(),
-					"target_block": targetBlock.String(),
-				})
+				logger := l.logger.WithField("block", targetBlock.String())
 				logger.Debug("got new block")
 
 				var errGroup errgroup.Group

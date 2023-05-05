@@ -34,12 +34,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -71,12 +70,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -110,12 +108,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -152,12 +149,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -198,12 +194,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -244,12 +239,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -289,12 +283,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -328,12 +321,11 @@ func Test_SingleChainBroadcaster_EventTrigger(t *testing.T) {
 
 		var consumed bool
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		_, err := broadcaster.RegisterEventHandler(testWfID, testChainID, func(ctx context.Context, event types.Log) {
@@ -421,12 +413,11 @@ func Test_SingleChainBroadcaster_BlockTrigger(t *testing.T) {
 		_, _, simulatedBackend, _ := initSimulatedBackend(ctx, t)
 
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		var consumed int
@@ -457,12 +448,11 @@ func Test_SingleChainBroadcaster_BlockTrigger(t *testing.T) {
 		_, _, simulatedBackend, _ := initSimulatedBackend(ctx, t)
 
 		broadcaster := &singleChainBroadcaster{
-			logger:        logger,
-			client:        simulatedBackend,
-			chainID:       testChainID,
-			finalityDepth: big.NewInt(0),
-			sbs:           newSubscriptions(),
-			stop:          make(chan struct{}),
+			logger:  logger,
+			client:  simulatedBackend,
+			chainID: testChainID,
+			sbs:     newSubscriptions(),
+			stop:    make(chan struct{}),
 		}
 
 		var consumed int
