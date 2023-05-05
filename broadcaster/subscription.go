@@ -189,9 +189,17 @@ func (s *subscriptions) buildFilters() ethereum.FilterQuery {
 	}
 }
 
-func (s *subscriptions) exist() bool {
+func (s *subscriptions) existEventSubscribers() bool {
 	s.eventSubscribersLock.Lock()
 	exist := len(s.eventSubscribers) > 0
+	s.eventSubscribersLock.Unlock()
+
+	return exist
+}
+
+func (s *subscriptions) existBlockSubscribers() bool {
+	s.eventSubscribersLock.Lock()
+	exist := len(s.blockSubscribers) > 0
 	s.eventSubscribersLock.Unlock()
 
 	return exist

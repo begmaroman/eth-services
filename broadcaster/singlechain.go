@@ -126,53 +126,53 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				var errGroup errgroup.Group
 
 				// Call block subscribers
-				errGroup.Go(func() error {
-					targetHeader := head
-					if targetBlock.Cmp(targetHeader.Number) != 0 {
-						targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock)
-						if err != nil {
-							return errors.Wrap(err, "failed to get a target header")
+				if l.sbs.existBlockSubscribers() {
+					errGroup.Go(func() error {
+						targetHeader := head
+						if targetBlock.Cmp(targetHeader.Number) != 0 {
+							targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock)
+							if err != nil {
+								return errors.Wrap(err, "failed to get a target header")
+							}
 						}
-					}
 
-					l.handleBlock(ctx, *targetHeader)
+						l.handleBlock(ctx, *targetHeader)
 
-					return nil
-				})
+						return nil
+					})
+				}
 
 				// Call event subscribers
-				errGroup.Go(func() error {
-					if !l.sbs.exist() {
-						return nil
-					}
+				if l.sbs.existEventSubscribers() {
+					errGroup.Go(func() error {
+						filters := l.sbs.buildFilters()
+						filters.FromBlock = targetBlock
+						filters.ToBlock = targetBlock
 
-					filters := l.sbs.buildFilters()
-					filters.FromBlock = targetBlock
-					filters.ToBlock = targetBlock
-
-					// Fetch logs from chain
-					var logs []types.Log
-					if logs, err = l.client.FilterLogs(ctx, filters); err != nil {
-						return errors.Wrap(err, "failed to filter logs for the forced block")
-					}
-
-					if len(logs) == 0 {
-						logger.Debug("no events for the block")
-						return nil
-					}
-
-					logger.WithField("logs", len(logs)).Debug("found some logs")
-
-					for _, log := range logs {
-						if log.Removed {
-							continue
+						// Fetch logs from chain
+						var logs []types.Log
+						if logs, err = l.client.FilterLogs(ctx, filters); err != nil {
+							return errors.Wrap(err, "failed to filter logs for the forced block")
 						}
 
-						l.handleEvent(ctx, log)
-					}
+						if len(logs) == 0 {
+							logger.Debug("no events for the block")
+							return nil
+						}
 
-					return nil
-				})
+						logger.WithField("logs", len(logs)).Debug("found some logs")
+
+						for _, log := range logs {
+							if log.Removed {
+								continue
+							}
+
+							l.handleEvent(ctx, log)
+						}
+
+						return nil
+					})
+				}
 
 				if err = errGroup.Wait(); err != nil {
 					logger.Error(err)
