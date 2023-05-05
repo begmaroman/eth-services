@@ -189,6 +189,14 @@ func (s *subscriptions) buildFilters() ethereum.FilterQuery {
 	}
 }
 
+func (s *subscriptions) exist() bool {
+	s.eventSubscribersLock.Lock()
+	exist := len(s.eventSubscribers) > 0
+	s.eventSubscribersLock.Unlock()
+
+	return exist
+}
+
 type eventSubscription struct {
 	id         string
 	inProgress int32

@@ -142,6 +142,10 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 
 				// Call event subscribers
 				errGroup.Go(func() error {
+					if !l.sbs.exist() {
+						return nil
+					}
+
 					filters := l.sbs.buildFilters()
 					filters.FromBlock = targetBlock
 					filters.ToBlock = targetBlock
@@ -156,6 +160,7 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 						logger.Debug("no events for the block")
 						return nil
 					}
+
 					logger.WithField("logs", len(logs)).Debug("found some logs")
 
 					for _, log := range logs {

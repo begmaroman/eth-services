@@ -56,10 +56,12 @@ func signTx(keyStore eskeystore.KeyStore, account gethAccounts.Account, tx *geth
 	if err != nil {
 		return gethCommon.Hash{}, nil, errors.Wrap(err, "signTx failed")
 	}
+
 	rlp := new(bytes.Buffer)
-	if err := signedTx.EncodeRLP(rlp); err != nil {
+	if err = signedTx.EncodeRLP(rlp); err != nil {
 		return gethCommon.Hash{}, nil, errors.Wrap(err, "signTx failed")
 	}
+
 	return signedTx.Hash(), rlp.Bytes(), nil
 
 }

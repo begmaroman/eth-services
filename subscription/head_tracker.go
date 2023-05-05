@@ -438,7 +438,7 @@ func (ht *HeadTracker) backfill(ctx context.Context, head *models.Head, baseHeig
 			"toBlockHeight", headNumber-1)
 	}()
 
-	for i := int64(head.Number - 1); i >= int64(baseHeight); i-- {
+	for i := head.Number - 1; i >= baseHeight; i-- {
 		// NOTE: Sequential requests here mean it's a potential performance bottleneck, be aware!
 		existingHead, err := ht.store.HeadByHash(head.ParentHash)
 		if err != nil {

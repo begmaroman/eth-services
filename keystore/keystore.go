@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/pkg/errors"
-
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/pkg/errors"
 	"go.uber.org/multierr"
 )
 
