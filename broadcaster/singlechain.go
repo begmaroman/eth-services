@@ -3,6 +3,7 @@ package broadcaster
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
@@ -38,6 +39,9 @@ type singleChainBroadcaster struct {
 	sbs        *subscriptions
 	stop       chan struct{}
 	wg         sync.WaitGroup
+
+	lastHeadLock sync.Mutex
+	lastHead     *big.Int
 }
 
 // NewSingleChain is the constructor of singleChainBroadcaster
@@ -49,6 +53,7 @@ func NewSingleChain(logger logrus.FieldLogger, client Client, opts Options) (Bro
 		forceBlock: opts.ForceBlock,
 		sbs:        newSubscriptions(),
 		stop:       make(chan struct{}),
+		lastHead:   big.NewInt(0),
 	}, nil
 }
 
@@ -84,6 +89,7 @@ func (l *singleChainBroadcaster) RegisterBlockHandler(id string, chainID uint64,
 func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 	// Initialize a subscription
 	ch := make(chan *types.Header, headsChanSize)
+
 	sub, err := l.client.SubscribeNewHead(ctx, ch)
 	if err != nil {
 		return errors.Wrap(err, "failed to subscribe on new heads")
@@ -110,6 +116,16 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				if l.forceBlock > 0 {
 					targetBlock = targetBlock.SetUint64(l.forceBlock)
 				}
+
+				// Check if this head has been proceeded already
+				if targetBlock.Cmp(l.lastHead) <= 0 {
+					continue
+				}
+
+				// Update the last handled head
+				l.lastHeadLock.Lock()
+				l.lastHead = new(big.Int).Set(targetBlock)
+				l.lastHeadLock.Unlock()
 
 				logger := l.logger.WithField("block", targetBlock.String())
 				logger.Debug("got new block")
