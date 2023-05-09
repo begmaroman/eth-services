@@ -27,11 +27,13 @@ func (store *TMStore) AddTx(
 	encodedPayload []byte,
 	value *big.Int,
 	gasLimit uint64,
+	maxGasPrice *big.Int,
 ) error {
 	account, err := store.GetAccount(fromAddress)
 	if err != nil {
 		return err
 	}
+
 	tx := models.Tx{
 		ID:             txID,
 		FromAddress:    fromAddress,
@@ -39,13 +41,16 @@ func (store *TMStore) AddTx(
 		EncodedPayload: encodedPayload,
 		Value:          value,
 		GasLimit:       gasLimit,
+		MaxGasPrice:    maxGasPrice,
 		State:          models.TxStateUnstarted,
 	}
-	err = store.PutTx(&tx)
-	if err != nil {
+
+	if err = store.PutTx(&tx); err != nil {
 		return err
 	}
+
 	account.TxIDs = append(account.TxIDs, txID)
+
 	return store.PutAccount(account)
 }
 

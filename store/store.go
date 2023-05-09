@@ -3,11 +3,11 @@ package store
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
 	"github.com/begmaroman/eth-services/store/models"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/google/uuid"
 )
 
 var (
@@ -63,6 +63,7 @@ type Store interface {
 		encodedPayload []byte,
 		value *big.Int,
 		gasLimit uint64,
+		maxGasPrice *big.Int,
 	) error
 
 	GetInProgressTx(fromAddress common.Address) (*models.Tx, error)

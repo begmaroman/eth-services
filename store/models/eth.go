@@ -64,6 +64,7 @@ type Tx struct {
 	EncodedPayload []byte
 	Value          *big.Int
 	GasLimit       uint64
+	MaxGasPrice    *big.Int
 	State          TxState
 	Error          string
 	TxAttemptIDs   []uuid.UUID
