@@ -52,6 +52,8 @@ type GethClient interface {
 	// SuggestGasTipCap retrieves the currently suggested 1559 priority fee to allow
 	// a timely execution of a transaction.
 	SuggestGasTipCap(ctx context.Context) (*big.Int, error)
+
+	FeeHistory(ctx context.Context, blockCount uint64, lastBlock *big.Int, rewardPercentiles []float64) (*ethereum.FeeHistory, error)
 }
 
 // RPCClient is an interface that represents go-ethereum's own rpc.Client.
@@ -252,6 +254,12 @@ func (client *Impl) SubscribeNewHead(ctx context.Context, ch chan<- *types.Heade
 func (client *Impl) SuggestGasTipCap(ctx context.Context) (*big.Int, error) {
 	client.logger.Debugw("eth.Client#SuggestGasTipCap(...)")
 	return client.GethClient.SuggestGasTipCap(ctx)
+}
+
+// FeeHistory returns the collection of historical gas information
+func (client *Impl) FeeHistory(ctx context.Context, blockCount uint64, lastBlock *big.Int, rewardPercentiles []float64) (*ethereum.FeeHistory, error) {
+	client.logger.Debugw("eth.Client#FeeHistory(...)")
+	return client.GethClient.FeeHistory(ctx, blockCount, lastBlock, rewardPercentiles)
 }
 
 // TODO: remove this wrapper type once EthMock is no longer in use in upstream.
