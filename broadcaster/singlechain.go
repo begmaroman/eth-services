@@ -99,14 +99,18 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 		for {
 			select {
 			case <-ctx.Done():
+				l.logger.WithError(err).Info("stopping new head subscription due to canceled context")
+
 				if err = ctx.Err(); err != nil {
 					l.logger.WithError(err).Error("failed to get logs due to failed context")
 				}
 				return
 			case err = <-sub.Err():
 				l.logger.WithError(err).Error("failed to get logs due to failed subscription")
-				sub, err = l.client.SubscribeNewHead(ctx, ch)
-				if err != nil {
+
+				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+
+				if sub, err = l.client.SubscribeNewHead(ctx, ch); err != nil {
 					l.logger.WithError(err).Fatal("failed to subscribe on new heads")
 				}
 			case <-l.stop:
