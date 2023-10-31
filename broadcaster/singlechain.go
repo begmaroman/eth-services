@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -14,7 +15,8 @@ import (
 )
 
 const (
-	headsChanSize = 1000
+	headsChanSize        = 1000
+	blockUpdateThreshold = 2
 )
 
 // Client represents the behavior of the on-chain data provider
@@ -27,6 +29,7 @@ type Client interface {
 type Options struct {
 	ChainID    uint64
 	ForceBlock uint64
+	BlockTime  time.Duration
 }
 
 // singleChainBroadcaster implements Broadcaster interface.
@@ -36,12 +39,14 @@ type singleChainBroadcaster struct {
 	client     Client
 	chainID    uint64
 	forceBlock uint64
+	blockTime  time.Duration
 	sbs        *subscriptions
 	stop       chan struct{}
 	wg         sync.WaitGroup
 
-	lastHeadLock sync.Mutex
-	lastHead     *big.Int
+	lastHeadLock      sync.Mutex
+	lastHead          *big.Int
+	lastHeadUpdatedAt time.Time
 }
 
 // NewSingleChain is the constructor of singleChainBroadcaster
@@ -51,6 +56,7 @@ func NewSingleChain(logger logrus.FieldLogger, client Client, opts Options) (Bro
 		client:     client,
 		chainID:    opts.ChainID,
 		forceBlock: opts.ForceBlock,
+		blockTime:  opts.BlockTime,
 		sbs:        newSubscriptions(),
 		stop:       make(chan struct{}),
 		lastHead:   big.NewInt(0),
@@ -129,6 +135,7 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				// Update the last handled head
 				l.lastHeadLock.Lock()
 				l.lastHead = new(big.Int).Set(targetBlock)
+				l.lastHeadUpdatedAt = time.Now()
 				l.lastHeadLock.Unlock()
 
 				logger := l.logger.WithField("block", targetBlock.String())
@@ -199,6 +206,16 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 func (l *singleChainBroadcaster) Stop() error {
 	l.stop <- struct{}{}
 	l.wg.Wait()
+	return nil
+}
+
+// Healthcheck performs a healthcheck
+func (l *singleChainBroadcaster) Healthcheck(ctx context.Context) error {
+	lastUpdate := time.Now().Sub(l.lastHeadUpdatedAt)
+	if lastUpdate > l.blockTime*blockUpdateThreshold {
+		return fmt.Errorf("new head is missing for %d", lastUpdate)
+	}
+
 	return nil
 }
 

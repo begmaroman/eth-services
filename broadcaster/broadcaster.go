@@ -44,6 +44,9 @@ type Broadcaster interface {
 
 	// Stop stops broadcasting
 	Stop() error
+
+	// Healthcheck performs a healthcheck of a broadcaster
+	Healthcheck(ctx context.Context) error
 }
 
 // BlockNumberMod returns true if the block number % n is 0
