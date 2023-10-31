@@ -213,6 +213,8 @@ func (l *singleChainBroadcaster) Stop() error {
 func (l *singleChainBroadcaster) Healthcheck(ctx context.Context) error {
 	lastUpdate := time.Now().Sub(l.lastHeadUpdatedAt)
 	if lastUpdate > l.blockTime*blockUpdateThreshold {
+		failedHealthcheckCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+
 		return fmt.Errorf("new head is missing for %d", lastUpdate)
 	}
 
