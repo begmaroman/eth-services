@@ -16,6 +16,13 @@ var (
 		Name:      "failed_healthcheck",
 		Help:      "The total number of failed healthchecks",
 	}, []string{"chain_id"})
+
+	reinitNewHeadsSubscriptionCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "nerif_app",
+		Subsystem: "broadcaster",
+		Name:      "reinit_new_heads",
+		Help:      "The total number of re-initializing a new heads subscription",
+	}, []string{"chain_id"})
 )
 
 func init() {

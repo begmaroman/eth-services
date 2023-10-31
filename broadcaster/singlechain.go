@@ -101,24 +101,78 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 		return errors.Wrap(err, "failed to subscribe on new heads")
 	}
 
+	reinitNewHeadsSubscription := func() error {
+		reinitNewHeadsSubscriptionCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+
+		sub.Unsubscribe()
+
+		const attempts = 5
+		for i := 0; i < attempts; i++ {
+			sub, err = l.client.SubscribeNewHead(ctx, ch)
+			if err != nil {
+				if i < (attempts - 1) {
+					time.Sleep(l.blockTime)
+					continue
+				}
+
+				return errors.Wrap(err, "failed to subscribe on new heads")
+			}
+
+			return nil
+		}
+
+		return nil
+	}
+
+	// Make sure new heads subscription always working
+	go func() {
+		ticker := time.NewTicker(blockUpdateThreshold * l.blockTime)
+		for range ticker.C {
+			select {
+			case <-ctx.Done():
+				ticker.Stop()
+				sub.Unsubscribe()
+
+				l.logger.WithError(err).Info("stopping new head subscription due to canceled context")
+
+				if err := ctx.Err(); err != nil {
+					l.logger.WithError(err).Error("context cancelled with error")
+				}
+
+				return
+			case <-l.stop:
+				ticker.Stop()
+				return
+			case err := <-sub.Err():
+				l.logger.WithError(err).Error("failed to get heads due to failed subscription")
+
+				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+
+				if err = reinitNewHeadsSubscription(); err != nil {
+					l.logger.WithError(err).Fatal("failed to subscribe on new heads")
+				}
+			default:
+				// Subscription is not stuck
+				if stuck, _ := l.isHeadsSubscriptionStuck(); !stuck {
+					continue
+				}
+
+				l.logger.WithError(err).Warnf("new heads subscription is stuck, initializing new subscription...")
+
+				// Subscription is stuck here. Need to initialize a new subscription
+				if err = reinitNewHeadsSubscription(); err != nil {
+					l.logger.WithError(err).Fatal("failed to subscribe on new heads")
+				}
+			}
+		}
+	}()
+
+	// Handle new heads
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				l.logger.WithError(err).Info("stopping new head subscription due to canceled context")
-
-				if err = ctx.Err(); err != nil {
-					l.logger.WithError(err).Error("failed to get logs due to failed context")
-				}
 				return
-			case err = <-sub.Err():
-				l.logger.WithError(err).Error("failed to get logs due to failed subscription")
-
-				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
-
-				if sub, err = l.client.SubscribeNewHead(ctx, ch); err != nil {
-					l.logger.WithError(err).Fatal("failed to subscribe on new heads")
-				}
 			case <-l.stop:
 				return
 			case head := <-ch:
@@ -211,14 +265,18 @@ func (l *singleChainBroadcaster) Stop() error {
 
 // Healthcheck performs a healthcheck
 func (l *singleChainBroadcaster) Healthcheck(ctx context.Context) error {
-	lastUpdate := time.Now().Sub(l.lastHeadUpdatedAt)
-	if lastUpdate > l.blockTime*blockUpdateThreshold {
+	if stuck, lastUpdate := l.isHeadsSubscriptionStuck(); stuck {
 		failedHealthcheckCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
 
 		return fmt.Errorf("new head is missing for %d", lastUpdate)
 	}
 
 	return nil
+}
+
+func (l *singleChainBroadcaster) isHeadsSubscriptionStuck() (bool, time.Duration) {
+	lastUpdate := time.Now().Sub(l.lastHeadUpdatedAt)
+	return lastUpdate > l.blockTime*blockUpdateThreshold*2, lastUpdate
 }
 
 // handleEvent handles the given event
