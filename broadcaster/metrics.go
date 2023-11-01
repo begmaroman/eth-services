@@ -28,4 +28,5 @@ var (
 func init() {
 	prometheus.MustRegister(failedSubscribeNewHeadCounter)
 	prometheus.MustRegister(failedHealthcheckCounter)
+	prometheus.MustRegister(resubscribeNewHeadsSubscriptionCounter)
 }
