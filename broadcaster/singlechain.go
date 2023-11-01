@@ -100,6 +100,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 	ch := make(chan *types.Header, headsChanSize)
 
 	sub := event.Resubscribe(2*time.Second, func(ctx context.Context) (event.Subscription, error) {
+		resubscribeNewHeadsSubscriptionCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+
 		return l.client.SubscribeNewHead(ctx, ch)
 	})
 

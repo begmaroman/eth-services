@@ -17,7 +17,7 @@ var (
 		Help:      "The total number of failed healthchecks",
 	}, []string{"chain_id"})
 
-	reinitNewHeadsSubscriptionCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+	resubscribeNewHeadsSubscriptionCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "nerif_app",
 		Subsystem: "broadcaster",
 		Name:      "reinit_new_heads",
