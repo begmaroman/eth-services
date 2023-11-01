@@ -162,6 +162,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 							}
 						}
 
+						logger.Debug("found head subscribers for the current block")
+
 						l.handleBlock(ctx, *targetHeader)
 
 						return nil
@@ -186,7 +188,7 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 							return nil
 						}
 
-						logger.WithField("logs", len(logs)).Debug("found some logs")
+						logger.WithField("logs", len(logs)).Debug("found some events to be handled")
 
 						for _, log := range logs {
 							if log.Removed {
