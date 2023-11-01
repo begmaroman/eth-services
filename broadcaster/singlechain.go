@@ -125,25 +125,6 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 		return nil
 	}
 
-	// Make sure new heads subscription always working
-	go func() {
-		for {
-			time.Sleep(blockUpdateThreshold * l.blockTime)
-
-			// Subscription is not stuck
-			if stuck, _ := l.isHeadsSubscriptionStuck(); !stuck {
-				continue
-			}
-
-			l.logger.Warn("new heads subscription is stuck, initializing new subscription...")
-
-			// Subscription is stuck here. Need to initialize a new subscription
-			if err := reinitNewHeadsSubscription(); err != nil {
-				l.logger.WithError(err).Fatal("failed to subscribe on new heads")
-			}
-		}
-	}()
-
 	// Handle new heads
 	go func() {
 		for {
@@ -242,6 +223,27 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				if err = errGroup.Wait(); err != nil {
 					logger.Error(err)
 				}
+			}
+		}
+	}()
+
+	// Make sure new heads subscription always working
+	go func() {
+		time.Sleep(blockUpdateThreshold * 2 * l.blockTime)
+
+		for {
+			time.Sleep(blockUpdateThreshold * l.blockTime)
+
+			// Subscription is not stuck
+			if stuck, _ := l.isHeadsSubscriptionStuck(); !stuck {
+				continue
+			}
+
+			l.logger.Warn("new heads subscription is stuck, initializing new subscription...")
+
+			// Subscription is stuck here. Need to initialize a new subscription
+			if err := reinitNewHeadsSubscription(); err != nil {
+				l.logger.WithError(err).Fatal("failed to subscribe on new heads")
 			}
 		}
 	}()
