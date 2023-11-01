@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/event"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
@@ -97,33 +99,9 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 	// Initialize a subscription
 	ch := make(chan *types.Header, headsChanSize)
 
-	sub, err := l.client.SubscribeNewHead(ctx, ch)
-	if err != nil {
-		return errors.Wrap(err, "failed to subscribe on new heads")
-	}
-
-	reinitNewHeadsSubscription := func() error {
-		reinitNewHeadsSubscriptionCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
-
-		sub.Unsubscribe()
-
-		const attempts = 5
-		for i := 0; i < attempts; i++ {
-			sub, err = l.client.SubscribeNewHead(ctx, ch)
-			if err != nil {
-				if i < (attempts - 1) {
-					time.Sleep(l.blockTime)
-					continue
-				}
-
-				return errors.Wrap(err, "failed to subscribe on new heads")
-			}
-
-			return nil
-		}
-
-		return nil
-	}
+	sub := event.Resubscribe(2*time.Second, func(ctx context.Context) (event.Subscription, error) {
+		return l.client.SubscribeNewHead(ctx, ch)
+	})
 
 	// Handle new heads
 	go func() {
@@ -132,7 +110,7 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 			case <-ctx.Done():
 				sub.Unsubscribe()
 
-				l.logger.WithError(err).Info("stopping new head subscription due to canceled context")
+				l.logger.Info("stopping new head subscription due to canceled context")
 
 				if err := ctx.Err(); err != nil {
 					l.logger.WithError(err).Error("context cancelled with error")
@@ -140,14 +118,14 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 
 				return
 			case err := <-sub.Err():
-				l.logger.WithError(err).Error("failed to get heads due to failed subscription")
-
 				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
 
-				if err = reinitNewHeadsSubscription(); err != nil {
-					l.logger.WithError(err).Fatal("failed to subscribe on new heads")
-				}
+				l.logger.WithError(err).Fatal("failed to get heads due to failed subscription")
+
+				return
 			case <-l.stop:
+				sub.Unsubscribe()
+
 				return
 			case head := <-ch:
 				targetBlock := head.Number
@@ -176,8 +154,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 					errGroup.Go(func() error {
 						targetHeader := head
 						if targetBlock.Cmp(targetHeader.Number) != 0 {
-							targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock)
-							if err != nil {
+							var err error
+							if targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock); err != nil {
 								return errors.Wrap(err, "failed to get a target header")
 							}
 						}
@@ -196,8 +174,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 						filters.ToBlock = targetBlock
 
 						// Fetch logs from chain
-						var logs []types.Log
-						if logs, err = l.client.FilterLogs(ctx, filters); err != nil {
+						logs, err := l.client.FilterLogs(ctx, filters)
+						if err != nil {
 							return errors.Wrap(err, "failed to filter logs for the forced block")
 						}
 
@@ -220,30 +198,9 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 					})
 				}
 
-				if err = errGroup.Wait(); err != nil {
+				if err := errGroup.Wait(); err != nil {
 					logger.Error(err)
 				}
-			}
-		}
-	}()
-
-	// Make sure new heads subscription always working
-	go func() {
-		time.Sleep(blockUpdateThreshold * 2 * l.blockTime)
-
-		for {
-			time.Sleep(blockUpdateThreshold * l.blockTime)
-
-			// Subscription is not stuck
-			if stuck, _ := l.isHeadsSubscriptionStuck(); !stuck {
-				continue
-			}
-
-			l.logger.Warn("new heads subscription is stuck, initializing new subscription...")
-
-			// Subscription is stuck here. Need to initialize a new subscription
-			if err := reinitNewHeadsSubscription(); err != nil {
-				l.logger.WithError(err).Fatal("failed to subscribe on new heads")
 			}
 		}
 	}()
