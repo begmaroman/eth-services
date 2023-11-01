@@ -222,7 +222,7 @@ func (l *singleChainBroadcaster) Healthcheck(ctx context.Context) error {
 	if stuck, lastUpdate := l.isHeadsSubscriptionStuck(); stuck {
 		failedHealthcheckCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
 
-		return fmt.Errorf("new head is missing for %d", lastUpdate)
+		return fmt.Errorf("new head is missing for %s for chain %d", lastUpdate, l.chainID)
 	}
 
 	return nil
