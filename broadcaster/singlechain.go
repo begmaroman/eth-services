@@ -76,7 +76,7 @@ func (l *singleChainBroadcaster) RegisterEventHandler(id string, chainID uint64,
 
 	return func() {
 		l.sbs.removeEventSubscriptions(id)
-		l.logger.WithField("id", id).Info("subscription ha been unregistered")
+		l.logger.WithField("id", id).Info("subscription has been unregistered")
 	}, nil
 }
 
