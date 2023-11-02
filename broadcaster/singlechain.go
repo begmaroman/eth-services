@@ -120,11 +120,13 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 
 				return
 			case err := <-sub.Err():
+				if err == nil {
+					continue
+				}
+
 				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
 
-				l.logger.WithError(err).Fatal("failed to get heads due to failed subscription")
-
-				return
+				l.logger.WithError(err).Error("failed to get heads due to failed subscription")
 			case <-l.stop:
 				sub.Unsubscribe()
 
