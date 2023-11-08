@@ -182,7 +182,7 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 						// Fetch logs from chain
 						logs, err := l.client.FilterLogs(ctx, filters)
 						if err != nil {
-							return errors.Wrap(err, "failed to filter logs for the forced block")
+							return errors.Wrap(err, "failed to filter logs for the current block")
 						}
 
 						if len(logs) == 0 {
