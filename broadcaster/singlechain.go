@@ -96,12 +96,19 @@ func (l *singleChainBroadcaster) RegisterBlockHandler(id string, chainID uint64,
 
 // Start starts broadcasting messages
 func (l *singleChainBroadcaster) Start(ctx context.Context) error {
-	// Initialize a subscription
-	ch := make(chan *types.Header, headsChanSize)
+	var ch chan *types.Header
 
-	sub := event.Resubscribe(2*time.Second, func(ctx context.Context) (event.Subscription, error) {
+	// Initialize a subscription
+	sub := event.ResubscribeErr(5*time.Second, func(ctx context.Context, err error) (event.Subscription, error) {
+		if err != nil {
+			l.logger.WithError(err).Error("resubscribing new heads with error")
+
+			failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
+		}
+
 		resubscribeNewHeadsSubscriptionCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
 
+		ch = make(chan *types.Header, headsChanSize)
 		return l.client.SubscribeNewHead(ctx, ch)
 	})
 
