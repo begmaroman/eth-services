@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/event"
-
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
@@ -29,22 +27,22 @@ type Client interface {
 
 // Options contains options to create a broadcaster
 type Options struct {
-	ChainID    uint64
-	ForceBlock uint64
-	BlockTime  time.Duration
+	ChainID        uint64
+	BlockTime      time.Duration
+	UseLongPolling bool
 }
 
 // singleChainBroadcaster implements Broadcaster interface.
 // It uses a blockchain node as an event source.
 type singleChainBroadcaster struct {
-	logger     logrus.FieldLogger
-	client     Client
-	chainID    uint64
-	forceBlock uint64
-	blockTime  time.Duration
-	sbs        *subscriptions
-	stop       chan struct{}
-	wg         sync.WaitGroup
+	logger       logrus.FieldLogger
+	client       Client
+	headStreamer HeadStreamer
+	chainID      uint64
+	blockTime    time.Duration
+	sbs          *subscriptions
+	stop         chan struct{}
+	wg           sync.WaitGroup
 
 	lastHeadLock      sync.Mutex
 	lastHead          *big.Int
@@ -52,12 +50,17 @@ type singleChainBroadcaster struct {
 }
 
 // NewSingleChain is the constructor of singleChainBroadcaster
-func NewSingleChain(logger logrus.FieldLogger, client Client, opts Options) (Broadcaster, error) {
+func NewSingleChain(
+	logger logrus.FieldLogger,
+	client Client,
+	headStreamer HeadStreamer,
+	opts Options,
+) (Broadcaster, error) {
 	return &singleChainBroadcaster{
 		logger:            logger,
 		client:            client,
+		headStreamer:      headStreamer,
 		chainID:           opts.ChainID,
-		forceBlock:        opts.ForceBlock,
 		blockTime:         opts.BlockTime,
 		sbs:               newSubscriptions(),
 		stop:              make(chan struct{}),
@@ -96,29 +99,14 @@ func (l *singleChainBroadcaster) RegisterBlockHandler(id string, chainID uint64,
 
 // Start starts broadcasting messages
 func (l *singleChainBroadcaster) Start(ctx context.Context) error {
-	var ch chan *types.Header
-
-	// Initialize a subscription
-	sub := event.ResubscribeErr(5*time.Second, func(ctx context.Context, err error) (event.Subscription, error) {
-		if err != nil {
-			l.logger.WithError(err).Error("resubscribing new heads with error")
-
-			failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
-		}
-
-		resubscribeNewHeadsSubscriptionCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
-
-		ch = make(chan *types.Header, headsChanSize)
-		return l.client.SubscribeNewHead(ctx, ch)
-	})
+	// Start stream
+	l.headStreamer.Start(ctx)
 
 	// Handle new heads
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				sub.Unsubscribe()
-
 				l.logger.Info("stopping new head subscription due to canceled context")
 
 				if err := ctx.Err(); err != nil {
@@ -126,36 +114,25 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				}
 
 				return
-			case err := <-sub.Err():
-				if err == nil {
-					continue
-				}
-
-				failedSubscribeNewHeadCounter.WithLabelValues(big.NewInt(0).SetUint64(l.chainID).String()).Inc()
-
-				l.logger.WithError(err).Error("failed to get heads due to failed subscription")
 			case <-l.stop:
-				sub.Unsubscribe()
+				l.headStreamer.Stop()
 
 				return
-			case head := <-ch:
-				targetBlock := head.Number
-				if l.forceBlock > 0 {
-					targetBlock = targetBlock.SetUint64(l.forceBlock)
-				}
+			default:
+				head := l.headStreamer.Next()
 
 				// Check if this head has been proceeded already
-				if targetBlock.Cmp(l.lastHead) <= 0 {
+				if head.Number.Cmp(l.lastHead) <= 0 {
 					continue
 				}
 
 				// Update the last handled head
 				l.lastHeadLock.Lock()
-				l.lastHead = new(big.Int).Set(targetBlock)
+				l.lastHead = new(big.Int).Set(head.Number)
 				l.lastHeadUpdatedAt = time.Now()
 				l.lastHeadLock.Unlock()
 
-				logger := l.logger.WithField("block", targetBlock.String())
+				logger := l.logger.WithField("block", head.Number.String())
 				logger.Debug("got new block")
 
 				var errGroup errgroup.Group
@@ -163,18 +140,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				// Call block subscribers
 				if l.sbs.existBlockSubscribers() {
 					errGroup.Go(func() error {
-						targetHeader := head
-						if targetBlock.Cmp(targetHeader.Number) != 0 {
-							var err error
-							if targetHeader, err = l.client.HeaderByNumber(ctx, targetBlock); err != nil {
-								return errors.Wrap(err, "failed to get a target header")
-							}
-						}
-
 						logger.Debug("found head subscribers for the current block")
-
-						l.handleBlock(ctx, *targetHeader)
-
+						l.handleBlock(ctx, *head)
 						return nil
 					})
 				}
@@ -183,8 +150,8 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 				if l.sbs.existEventSubscribers() {
 					errGroup.Go(func() error {
 						filters := l.sbs.buildFilters()
-						filters.FromBlock = targetBlock
-						filters.ToBlock = targetBlock
+						filters.FromBlock = head.Number
+						filters.ToBlock = head.Number
 
 						// Fetch logs from chain
 						logs, err := l.client.FilterLogs(ctx, filters)

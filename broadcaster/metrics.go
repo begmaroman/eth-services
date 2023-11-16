@@ -23,10 +23,18 @@ var (
 		Name:      "reinit_new_heads",
 		Help:      "The total number of re-initializing a new heads subscription",
 	}, []string{"chain_id"})
+
+	failedGetHeaderByNumberCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "nerif_app",
+		Subsystem: "broadcaster",
+		Name:      "failed_get_header_by_number",
+		Help:      "The total number of failed requests to get header by number",
+	}, []string{"chain_id"})
 )
 
 func init() {
 	prometheus.MustRegister(failedSubscribeNewHeadCounter)
 	prometheus.MustRegister(failedHealthcheckCounter)
 	prometheus.MustRegister(resubscribeNewHeadsSubscriptionCounter)
+	prometheus.MustRegister(failedGetHeaderByNumberCounter)
 }
