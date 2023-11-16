@@ -120,11 +120,6 @@ func (l *singleChainBroadcaster) Start(ctx context.Context) error {
 			default:
 				head := l.headStreamer.Next()
 
-				// Check if this head has been proceeded already
-				if head.Number.Cmp(l.lastHead) <= 0 {
-					continue
-				}
-
 				// Update the last handled head
 				l.lastHeadLock.Lock()
 				l.lastHead = new(big.Int).Set(head.Number)
