@@ -62,7 +62,7 @@ func (lp *longPollingHeadStreamer) Start(ctx context.Context) {
 				currentHeaderNumber := header.Number.Uint64()
 
 				// if the difference between the last fetched block and the current one is more than 1, fallback headers
-				if blockDiff := currentHeaderNumber - lastHeaderNumber; blockDiff > 1 {
+				if blockDiff := currentHeaderNumber - lastHeaderNumber; lastHeaderNumber > 0 && blockDiff > 1 {
 					var errGrp errgroup.Group
 
 					for blockToFetch := lastHeaderNumber + 1; blockToFetch < currentHeaderNumber-1; blockToFetch++ {
