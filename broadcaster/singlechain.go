@@ -27,9 +27,8 @@ type Client interface {
 
 // Options contains options to create a broadcaster
 type Options struct {
-	ChainID        uint64
-	BlockTime      time.Duration
-	UseLongPolling bool
+	ChainID   uint64
+	BlockTime time.Duration
 }
 
 // singleChainBroadcaster implements Broadcaster interface.
