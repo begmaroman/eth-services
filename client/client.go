@@ -83,14 +83,15 @@ var _ Client = (*Impl)(nil)
 // NewImpl creates a new client implementation
 func NewImpl(config *esTypes.Config) (*Impl, error) {
 	rpcURL := config.RPCURL
-	if rpcURL.Scheme != "ws" && rpcURL.Scheme != "wss" {
-		return nil, errors.Errorf("Ethereum URL scheme must be websocket: %s", rpcURL.String())
+	if rpcURL.Scheme != "ws" && rpcURL.Scheme != "wss" &&
+		rpcURL.Scheme != "http" && rpcURL.Scheme != "https" {
+		return nil, errors.Errorf("Ethereum URL scheme must be ws(s) or http(s): %s", rpcURL)
 	}
 
 	secondaryRPCURLs := config.SecondaryRPCURLs
 	for _, url := range secondaryRPCURLs {
 		if url.Scheme != "http" && url.Scheme != "https" {
-			return nil, errors.Errorf("secondary Ethereum RPC URL scheme must be http(s): %s", url.String())
+			return nil, errors.Errorf("secondary Ethereum RPC URL scheme must be http(s): %s", url)
 		}
 	}
 
@@ -238,14 +239,24 @@ func (client *Impl) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]t
 }
 
 func (client *Impl) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
+	if client.url.Scheme != "ws" && client.url.Scheme != "wss" {
+		return nil, errors.Errorf("subscriptions allowed for ws(s) only: %s", client.url)
+	}
+
 	client.logger.Debugw("eth.Client#SubscribeFilterLogs(...)",
 		"q", q,
 	)
+
 	return client.GethClient.SubscribeFilterLogs(ctx, q, ch)
 }
 
 func (client *Impl) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
+	if client.url.Scheme != "ws" && client.url.Scheme != "wss" {
+		return nil, errors.Errorf("subscriptions allowed for ws(s) only: %s", client.url)
+	}
+
 	client.logger.Debugw("eth.Client#SubscribeNewHead(...)")
+
 	return client.GethClient.SubscribeNewHead(ctx, ch)
 }
 
